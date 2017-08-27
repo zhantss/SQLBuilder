@@ -1,0 +1,41 @@
+.resources-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.resources-card-text {
+    padding-top: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    flex: 15;
+    display: flex;
+    flex-direction: column;
+}
+
+.resources-card-header {
+    padding-bottom: 0 !important;
+    flex: 1;
+}
+
+.resources-card-toggle {
+    padding: 0 0 0 16px;
+    box-sizing: border-box;
+}
+
+.resources-item {
+    cursor: default !important;
+}
+
+.resources-drag {
+    position: absolute;
+    z-index: 100;
+    overflow: hidden;
+    pointer-events: none;
+    cursor: grabbing !important;
+    width: 200px;
+    height: 50px;
+    line-height: 50px;
+    text-align: center;
+    border: 2px solid #000;
+    background: #FFF;
+}

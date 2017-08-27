@@ -1,0 +1,26 @@
+.icon-list {
+    height: 16px;
+    .icon-package {
+        display: inline-block;
+        .material-icons {
+            margin-top: -4px;
+            margin-right: 12px;
+        }
+        span {
+            vertical-align: super;
+        }
+    }
+    &.auto-complete {
+        .icon-package {
+            display: inline-block;
+            .material-icons {
+                margin-top: -4px;
+                margin-right: 4px;
+                font-size: 22px;
+            }
+            span {
+                vertical-align: super;
+            }
+        }
+    }
+}

@@ -1,0 +1,57 @@
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-button {
+    display: none;
+}
+
+::-webkit-scrollbar-thumb {
+    border-radius: 5px;
+    background: rgba(0,0,0,0.2);
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(0,0,0,0.1);
+}
+
+.flex {
+    display: flex;
+}
+
+.flex-column {
+    display: flex;
+    flex-direction: column;
+    .height100 {
+        flex: 1;
+        height: auto;
+    }
+}
+
+.relative {
+    position: relative;
+    &.hidden {
+        left: 100%;
+    }
+}
+
+.width100 {
+    width: 100%;
+}
+
+.height100 {
+    height: 100%;
+}
+
+.display-none {
+    display: none !important;
+}
+
+.user-select-none {
+    user-select: none;
+}
+
+.user-select-text {
+    user-select: text;
+}
