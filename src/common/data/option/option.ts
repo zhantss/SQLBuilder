@@ -1,7 +1,12 @@
-import { JoinMode } from '../define/extra';
+import { Column } from './../define/expression';
+import { JoinMode, SetOperationType } from '../define/extra';
 import { Expression } from '../define/expression';
 
-export class Table {
+export interface Option {
+
+}
+
+export class Table implements Option {
     items: Array<Expression>
 
     constructor() {
@@ -9,7 +14,7 @@ export class Table {
     }
 }
 
-export class Join {
+export class Join implements Option {
     mode?: JoinMode
     on?: Expression
     using?: Array<string>
@@ -17,6 +22,14 @@ export class Join {
     constructor() {}
 }
 
-export class SetOperators {
-    
+export class SetOperation {
+    type?: SetOperationType
+}
+
+export class SetOperators implements Option {
+    items: Array<Expression>
+    order: Array<Column>
+    // TODO Limit
+    // TODO Offset
+    // TODO Fetch
 }
