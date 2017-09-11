@@ -8,3 +8,6 @@ export const model_header_btn_sub = "创建子查询"
 export const model_header_btn_union = "创建集合查询"
 export const model_header_btn_cancel = "撤销"
 export const model_header_btn_redo = "重做"
+
+export const option_title_join = "关联"
+export const option_title_setop = "集合"

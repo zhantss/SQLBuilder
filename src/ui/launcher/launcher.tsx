@@ -32,6 +32,7 @@ class Launcher extends React.PureComponent {
                         <ModelPanel />
                     </div>
                     {<Layout />}
+                    {}
                 </div>
             </MuiThemeProvider>
         );

@@ -8,7 +8,7 @@ import { DataModel } from '../data'
 const graphic = create(init, {
     [action.$types.CREATE](state, action) {
         // TODO
-        return action.data;
+        return init;
     },
     [action.$types.UPDATE](state, action) {
         if (action && action.currentNode) {
