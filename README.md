@@ -5,8 +5,8 @@ In Development
 
 2017-08-27 
 
-# Build
+## Build
 npm install
 
-# Run local
+## Run example in location
 npm start
