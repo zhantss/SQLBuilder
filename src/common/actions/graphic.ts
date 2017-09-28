@@ -6,6 +6,7 @@ const pre = 'GRAPHIC_';
 const $types = {
     CREATE : 'CREATE',
     UPDATE : 'UPDATE',
+    DELETE: 'DELETE',
     DATA: 'DATA',
     FIRST : 'FIRST'
 }
@@ -13,6 +14,7 @@ const $types = {
 const actions = {
     CREATE : ['data'],
     UPDATE : ['parentKey', 'currentNode'],
+    DELETE : ['nodeKey'],
     DATA: ['nodeKey', 'data'],
     FIRST : ['key']
 }
@@ -23,7 +25,8 @@ const $dispatch = createActionDispatch(pre, actions);
 interface $actions {
     CREATE(data: any) : any
     UPDATE(parentKey: string, currentNode: any) : any
-    DATA(nodeKey: string, data: DataModel.Data.Data)
+    DELETE(nodeKey: string) : any
+    DATA(nodeKey: string, data: DataModel.Data.Data): any
     FIRST(key: string): any
 }
 

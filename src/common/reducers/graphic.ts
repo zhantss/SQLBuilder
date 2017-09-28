@@ -6,9 +6,24 @@ import create from './create'
 import { DataModel } from '../data'
 
 const graphic = create(init, {
-    [action.$types.CREATE](state, action) {
-        // TODO
-        return init;
+    [action.$types.DELETE](state, action) {
+        if (action && action.nodeKey) {
+            let graphic = state.get('graphic');
+            if (graphic) {
+                graphic = graphic.filterNot((v, k) => {
+                    const path = v.get('path');
+                    if (path && path.indexOf(action.nodeKey) != -1) {
+                        return true;
+                    }
+                    return false;
+                });
+                state = state.set('graphic', graphic);
+                if (graphic.size <= 0) {
+                    state = state.delete('key');
+                }
+            }
+        }
+        return state;
     },
     [action.$types.UPDATE](state, action) {
         if (action && action.currentNode) {
@@ -44,7 +59,7 @@ const graphic = create(init, {
                     if (topNode) {
                         let topData = topNode.get('data');
                         if (topData instanceof DataModel.Data.Select) {
-                            topNode = topNode.set('data', new DataModel.Data.Select(null));
+                            topNode = topNode.set('data', new DataModel.Data.Select('new Select', null));
                             state = state.setIn(['graphic', topKey], topNode);
                         } else if (topData instanceof DataModel.Data.SetOperators) {
                             topNode = topNode.set('data', new DataModel.Data.SetOperators(null));

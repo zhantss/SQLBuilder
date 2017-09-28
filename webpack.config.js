@@ -14,7 +14,7 @@ module.exports = {
         vendor: ['react', 'react-dom', 'redux', 'react-redux', 'react-router', 'react-router-dom', 'react-router-redux'],
         plugin: ['redux-saga', 'redux-logger', 'immutable', 'redux-immutable'],
         ui: ['react-tap-event-plugin', 'material-ui'],
-        tool: ['axios', 'bowser', 'classnames', 'uuid', 'd3', 'sql-parser'],
+        tool: ['axios', 'bowser', 'classnames', 'uuid', 'sql-parser'],
         sqlbuilder: ['./src/index.tsx', 'webpack-hot-middleware/client?path=/__webpack_hmr&timeout=20000']
     },
     output: {
@@ -22,7 +22,7 @@ module.exports = {
         filename: '[name].bundle.js'
     },
     plugins: [
-        new IgnorePlugin(/(^fs$|cptable|jszip|xlsx|^es6-promise$|^net$|^tls$|^forever-agent$|^tough-cookie$|cpexcel|^path$|^request$|react-native|^vertx$)/),
+        new IgnorePlugin(/(^fs$|cptable|jszip|xlsx|^es6-promise$|^net$|^tls$|^forever-agent$|^tough-cookie$|cpexcel|^path$|^request$|react-native|^vertx$)/),       // for alasql
         new HtmlWebpackPlugin({
             template: path.join(__dirname, '/src/html/index.tpl.html'),
             inject: 'body',

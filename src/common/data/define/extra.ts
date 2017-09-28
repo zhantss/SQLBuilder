@@ -12,8 +12,8 @@ export enum OrderMode {
 }
 
 export enum JoinMode {
-    LEFT, RIGHT, INNER, FULL, CROSS
-    // TODO INNER, OUTER, SEMI
+    LEFT, RIGHT, INNER, FULL, CROSS, NATURAL
+    // TODO OUTER, SEMI
 }
 
 export enum SetOperationType {

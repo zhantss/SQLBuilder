@@ -9,12 +9,14 @@ import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import Layout from '../common/drag/layout'
 import { ResourcesSelecter } from '../resources'
 import { ModelPanel } from '../model'
+import { OptionPanel } from '../model/option'
 
 import * as commonActions from '../../common/actions'
 
 import '../stylesheet/common.scss'
 import '../stylesheet/drag.scss'
 import '../stylesheet/draw.scss'
+import '../stylesheet/option.scss'
 import '../stylesheet/launcher.scss'
 
 class Launcher extends React.PureComponent {
@@ -32,7 +34,7 @@ class Launcher extends React.PureComponent {
                         <ModelPanel />
                     </div>
                     {<Layout />}
-                    {}
+                    {<OptionPanel />}
                 </div>
             </MuiThemeProvider>
         );

@@ -7,7 +7,9 @@ export const mapStateToProps = (mapping) => {
         let res = {};
         if (mapping) {
             Object.keys(mapping).forEach(k => {
-                res[k] = state.getIn(mapping[k]);
+                if (mapping[k]) {
+                    res[k] = state.getIn(mapping[k]);
+                }
             })
         }
         return res;
@@ -22,7 +24,9 @@ export const mapDispatchToProps = (mapping) => {
                 publish[k] = bindActionCreators(actions[k].$dispatch, dispatch);
             }
         })
-        return publish;
+        return {
+            actions: publish
+        };
     }
 }
 

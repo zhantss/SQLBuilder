@@ -5,26 +5,45 @@ import * as immutable from 'immutable'
 import { DragSource, ConnectDragSource, ConnectDragPreview } from 'react-dnd';
 import { getEmptyImage } from 'react-dnd-html5-backend';
 
+import IconMenu from 'material-ui/IconMenu';
+import MenuItem from 'material-ui/MenuItem';
+import IconButton from 'material-ui/IconButton';
+import Divider from 'material-ui/Divider';
+import { SimpleIcon as Icon } from '../../icon'
+
+import { connect2 } from '../../../common/connect'
 import { cn } from '../../text'
 import { DropTypes, InnerType } from '../../common/drag'
 import { DataModel } from '../../../common/data'
+import { option as optionAction } from '../../../common/actions'
+import { graphic as graphicAction } from '../../../common/actions'
+import { Option, OptionType, OptionTarget, OptionPosition } from '../../../common/data/option'
+import { JoinTrigger } from '../option/trigger'
 
 import SelectPackage from './package'
 
-interface SourceItemProps {
+interface SelectItemProps {
     connectDragSource?: ConnectDragSource
     connectDragPreview?: ConnectDragPreview
     isDragging?: boolean
     node?: any
     isOver?: boolean
-    canDrop? : boolean
+    canDrop?: boolean
     graphic?: immutable.Map<string, any>
+    actions?: any
 }
 
-class SourceItem extends React.PureComponent<SourceItemProps> {
+interface SelectItemState {
+    menu: boolean
+}
+
+class SelectItem extends React.PureComponent<SelectItemProps, SelectItemState> {
 
     constructor(props) {
         super(props);
+        this.state = {
+            menu: false
+        }
     }
 
     componentDidMount() {
@@ -32,6 +51,54 @@ class SourceItem extends React.PureComponent<SourceItemProps> {
         connectDragPreview(getEmptyImage(), {
             captureDraggingState: true
         })
+        const { actions, node } = this.props;
+        const { option } = actions;
+        let action: optionAction.$actions = option;
+        const key = node.get('key');
+        action.SUBMIT(key, new Option.Table());
+    }
+
+    componentWillUnmount() {
+        const { actions, node } = this.props;
+        const { option } = actions;
+        let action: optionAction.$actions = option;
+        const key = node.get('key');
+        action.REMOVE(key);
+    }
+
+    select(event) {
+        const { actions, node } = this.props;
+        const { option } = actions;
+        if (option && node && event && event.nativeEvent) {
+            let action: optionAction.$actions = option;
+            const target = new OptionTarget();
+            target.target = node.get('data');
+            action.PUSH(node.get('name'), OptionType.SELECT, target, new OptionPosition(event.nativeEvent.clientX, event.nativeEvent.clientY))
+        }
+    }
+
+    over(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        this.setState({
+            menu: true
+        })
+    }
+
+    leave(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        this.setState({
+            menu: false
+        })
+    }
+
+    delete(event) {
+        event.preventDefault();
+        const { actions, node } = this.props;
+        const { graphic } = actions;
+        let action: graphicAction.$actions = graphic;
+        action.DELETE(node.get('key'));
     }
 
     render() {
@@ -46,27 +113,41 @@ class SourceItem extends React.PureComponent<SourceItemProps> {
         }
 
         return connectDragSource(
-            <div className={classnames('model-item', 'model-select', { over : isOver }, { can : canDrop })}>
+            <div className={classnames('model-item', 'model-select', { over: isOver }, { can: canDrop })} onMouseOver={this.over.bind(this)} onMouseLeave={this.leave.bind(this)}>
                 <div className={classnames('item-package', node.get('relation'))} data-key={node.get('key')}>
                     {/* <div className={'model-select-title'}>{node.get('name')}</div> */}
                     <SelectPackage node={node} sub={sub} />
                 </div>
-                {node.get('parent') ? <div className={classnames('model-option')}></div> : null}
+                {node.get('parent') ? <JoinTrigger node={node} /> : null}
+                <div className={classnames('item-menu', { 'visable': this.state.menu })}>
+                    <IconMenu
+                        iconButtonElement={<IconButton style={{ height: '40px', width: '40px', padding: '0 0 0 0' }}><Icon name={'menu'} /></IconButton>}
+                        anchorOrigin={{ horizontal: 'left', vertical: 'top' }}
+                        targetOrigin={{ horizontal: 'left', vertical: 'top' }}
+                        touchTapCloseDelay={10}
+                    >
+                        <MenuItem primaryText={cn.option_setting} onTouchTap={this.select.bind(this)} />
+                        <MenuItem primaryText={cn.option_delete} onTouchTap={this.delete.bind(this)} />
+                    </IconMenu>
+                </div>
             </div>
         );
     }
 
 }
 
-export default DragSource(DropTypes.RESOURCES, {
-    beginDrag(props: SourceItemProps, monitor, component) {
+export default connect2(null, {
+    'option': null,
+    'graphic': null
+})(DragSource(DropTypes.RESOURCES, {
+    beginDrag(props: SelectItemProps, monitor, component) {
         return {
             // content: props.node.get('name'),
             node: props.node,
             type: InnerType.SELECT
         };
     },
-    endDrag(props: SourceItemProps,  monitor, component) {
+    endDrag(props: SelectItemProps, monitor, component) {
         let res: any = monitor.getDropResult();
         if (res && res.update) {
             res.update(props.node)
@@ -78,4 +159,4 @@ export default DragSource(DropTypes.RESOURCES, {
         connectDragPreview: connect.dragPreview(),
         isDragging: monitor.isDragging()
     }
-})(SourceItem)
+})(SelectItem))

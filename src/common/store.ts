@@ -19,6 +19,8 @@ const superLogger = createLogger({
     }
 })
 
+// TODO State Time Line
+
 let apply = applyMiddleware(middleware);
 if (DEV) {
     apply = applyMiddleware(middleware, superLogger);

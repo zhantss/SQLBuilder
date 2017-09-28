@@ -154,6 +154,17 @@
         background: #fff;
         cursor: pointer;
     }
+    .item-menu {
+        position: absolute;
+        z-index: 9;
+        right: 0;
+        top: 0;
+        visibility: hidden;
+
+        &.visable {
+            visibility: visible !important;
+        }
+    }
 }
 
 .model-wrap {
@@ -211,4 +222,8 @@
             }
         }
     }
+}
+
+.option-container {
+    
 }

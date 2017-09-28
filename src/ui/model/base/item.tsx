@@ -5,6 +5,7 @@ import * as immutable from 'immutable'
 import { DragSource, ConnectDragSource, ConnectDragPreview } from 'react-dnd';
 import { getEmptyImage } from 'react-dnd-html5-backend';
 
+import { connect2 } from '../../../common/connect'
 import { cn } from '../../text'
 import { DropTypes, InnerType } from '../../common/drag'
 import { DataModel } from '../../../common/data'
@@ -15,7 +16,7 @@ interface ModelItemProps {
     isDragging?: boolean
     node?: any
     isOver?: boolean
-    canDrop? : boolean
+    canDrop?: boolean
 }
 
 class ModelItem extends React.PureComponent<ModelItemProps> {
@@ -35,7 +36,7 @@ class ModelItem extends React.PureComponent<ModelItemProps> {
         const { connectDragSource, isDragging, node, isOver, canDrop } = this.props;
 
         return connectDragSource(
-            <div className={classnames('model-item', { over : isOver }, { can : canDrop })}>
+            <div className={classnames('model-item', { over: isOver }, { can: canDrop })}>
                 <div className={classnames('item-package', node.get('relation'))} data-key={node.get('key')}>{node.get('name')}</div>
                 {node.get('parent') ? <div className={classnames('model-option')}></div> : null}
             </div>
@@ -44,7 +45,9 @@ class ModelItem extends React.PureComponent<ModelItemProps> {
 
 }
 
-export default DragSource(DropTypes.RESOURCES, {
+export default connect2(null, {
+    'option' : null
+})(DragSource(DropTypes.RESOURCES, {
     beginDrag(props: ModelItemProps, monitor, component) {
         return {
             content: props.node.get('name'),
@@ -52,7 +55,7 @@ export default DragSource(DropTypes.RESOURCES, {
             type: InnerType.ITEM
         };
     },
-    endDrag(props: ModelItemProps,  monitor, component) {
+    endDrag(props: ModelItemProps, monitor, component) {
         let res: any = monitor.getDropResult();
         if (res && res.update) {
             res.update(props.node)
@@ -64,4 +67,4 @@ export default DragSource(DropTypes.RESOURCES, {
         connectDragPreview: connect.dragPreview(),
         isDragging: monitor.isDragging()
     }
-})(ModelItem)
+})(ModelItem))

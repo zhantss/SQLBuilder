@@ -56,7 +56,7 @@ export default DragSource(DropTypes.RESOURCES, {
                             key: id,
                             identity: id,
                             name: id,
-                            data: new DataModel.Data.Select(null)
+                            data: new DataModel.Data.Select(id, null)
                         }),
                         type: InnerType.SELECT,
                         powerType: props.powerType
@@ -92,7 +92,7 @@ export default DragSource(DropTypes.RESOURCES, {
                         key: id,
                         identity: id,
                         name: id,
-                        data: new DataModel.Data.Select(null)
+                        data: new DataModel.Data.Select(id, null)
                     }))
                     break;
                 }

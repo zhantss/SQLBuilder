@@ -15,6 +15,8 @@ let option = immutable.fromJS({
 
     target: null,
 
+    position: null,
+
     options: {}
 
 });

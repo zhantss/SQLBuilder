@@ -18,8 +18,12 @@ export class Join implements Option {
     mode?: JoinMode
     on?: Expression
     using?: Array<string>
+    isUsing: boolean
 
-    constructor() {}
+    constructor() {
+        this.isUsing = false;
+        this.mode = JoinMode.INNER;
+    }
 }
 
 export class SetOperation {

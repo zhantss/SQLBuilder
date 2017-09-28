@@ -46,10 +46,12 @@ export class Model implements Data {
 }
 
 export class Select implements Data {
+    name: string
     children: string
     type = DataType.SELECT
 
-    constructor(children: string) {
+    constructor(name: string, children: string) {
+        this.name = name;
         this.children = children;
     }
 }

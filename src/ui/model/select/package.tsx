@@ -62,7 +62,7 @@ class SelectPackage extends React.PureComponent<SelectPackageProps, SelectPackag
                 // drag = drag.set('parent', null);
                 drag = drag.set('top', node.get('key'));
 
-                actions.DATA(node.get('key'), new DataModel.Data.Select(drag.get('key')));
+                actions.DATA(node.get('key'), new DataModel.Data.Select(node.get('key'), drag.get('key')));
                 actions.UPDATE(null, drag);
             } catch (error) {
                 // TODO 
