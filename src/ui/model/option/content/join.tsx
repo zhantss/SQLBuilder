@@ -3,12 +3,15 @@ import * as classnames from 'classnames'
 import * as uuid from 'uuid'
 
 import Toggle from 'material-ui/Toggle';
+import DropDownMenu from 'material-ui/DropDownMenu';
+import MenuItem from 'material-ui/MenuItem';
 import { Tabs as ScrollTabs, Tab as ScrollTab } from 'material-ui-scrollable-tabs/Tabs';
 
 import { cn } from '../../../text'
 import { connect2 } from '../../../../common/connect'
 import { DataModel } from '../../../../common/data'
-import { OptionTarget } from '../../../../common/data/option'
+import { JoinMode } from '../../../../common/data/define/extra';
+import { Option, OptionTarget } from '../../../../common/data/option'
 
 interface JoinContentProps {
     actions?: any
@@ -18,6 +21,27 @@ interface JoinContentProps {
 
 interface JoinContentState {
     using: boolean
+    join: Option.Join
+}
+
+interface ModeMenuProps {
+    mode: any
+    handleModeChange()
+}
+
+class ModeMenu extends React.PureComponent<ModeMenuProps> {
+
+    render() {
+        const { mode, handleModeChange } = this.props;
+        const menus = new Array();
+        Object.keys(JoinMode).forEach((value, index) => {
+            if (JoinMode[index]) {
+                menus.push(<MenuItem key={index} value={index} label={JoinMode[index]} primaryText={JoinMode[index]} />)
+            }
+        })
+
+        return (<DropDownMenu style={{ float: "right", width: "200px" }} value={mode} onChange={handleModeChange}>{menus}</DropDownMenu>);
+    }
 }
 
 class JoinContent extends React.PureComponent<JoinContentProps, JoinContentState> {
@@ -25,7 +49,8 @@ class JoinContent extends React.PureComponent<JoinContentProps, JoinContentState
     constructor(props) {
         super(props);
         this.state = {
-            using: false
+            using: false,
+            join: new Option.Join()
         }
     }
 
@@ -36,36 +61,39 @@ class JoinContent extends React.PureComponent<JoinContentProps, JoinContentState
         })
     }
 
-    tabs() {
+    handleModeChange(event, index, value) {
+        let { join } = this.state;
+        const curr: Option.Join = Object.create(join);
+        curr.mode = index;
+        this.setState({
+            join: curr
+        })
+    }
+
+    tabs(toggle) {
         const res = new Array();
         const { target } = this.props;
-        const toggle = <Toggle
-            className={'option-toggle'}
-            label={this.state.using ? cn.option_join_on : cn.option_join_using}
-            toggled={this.state.using ? false : true}
-            onToggle={this.toggleUsingOrOn.bind(this)}
-            labelPosition={"right"}
-        />
+
         if (target.target && target.addition) {
             target.addition.forEach(el => {
-                if (el instanceof DataModel.Data.Model) {
-                    res.push(
-                        <ScrollTab key={uuid.v4()} label={el.name}>
+                if (el && el.name) {
+                    let label = <span style={{ fontSize: "16px" }}>{el.name}</span>;
+                    const buttonStyle = {
+                        lineHeight: "48px"
+                    };
+                    const children = new Array();
+                    if (el instanceof DataModel.Data.Model) {
+                    } else if (el instanceof DataModel.Data.Source) {
+                    } else if (el instanceof DataModel.Data.Select) {
+                    }
+                    const tab = <ScrollTab key={uuid.v4()} label={label} buttonStyle={buttonStyle}>
+                        <div className={'option-join-tool'}>
                             {toggle}
-                        </ScrollTab>
-                    );
-                } else if (el instanceof DataModel.Data.Source) {
-                    res.push(
-                        <ScrollTab key={uuid.v4()} label={el.name}>
-                            {toggle}
-                        </ScrollTab>
-                    );
-                } else if (el instanceof DataModel.Data.Select) {
-                    res.push(
-                        <ScrollTab key={uuid.v4()} label={el.name}>
-                            {toggle}
-                        </ScrollTab>
-                    );
+                            {<ModeMenu mode={this.state.join.mode} handleModeChange={this.handleModeChange.bind(this)}/>}
+                        </div>
+                        {children}
+                    </ScrollTab>;
+                    res.push(tab);
                 }
             });
         }
@@ -73,10 +101,18 @@ class JoinContent extends React.PureComponent<JoinContentProps, JoinContentState
     }
 
     render() {
+        const { using } = this.state;
+        const toggle = <Toggle
+            className={'option-toggle'}
+            label={using ? cn.option_join_on : cn.option_join_using}
+            toggled={using ? false : true}
+            onToggle={this.toggleUsingOrOn.bind(this)}
+            labelPosition={"right"}
+        />
         return (
             <div className="option-join">
                 <ScrollTabs tabType={`scrollable`}>
-                    {this.tabs()}
+                    {this.tabs(toggle)}
                 </ScrollTabs>
             </div>
         );

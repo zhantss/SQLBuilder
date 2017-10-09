@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { TransitionGroup, CSSTransition } from 'react-transition-group'
 import * as classnames from 'classnames'
 
 import Paper from 'material-ui/Paper';
@@ -41,16 +42,22 @@ class Option extends React.PureComponent<OptionProps> {
 
     render() {
         const { visable, position } = this.props;
-        if (!visable) {
-            return null;
-        }
+        //if (!visable) {
+        //    return null;
+        //}
         return (
-            <div className={classnames('option-container')} onTouchTap={this.hidden.bind(this)}>
-                <Paper zDepth={2} className={classnames('option-panel')} style={{ left: position.x - 240, top: position.y }} onTouchTap={this.stop}>
-                    <OptionTitle />
-                    <OptionContent />
-                    <div className="option-toolbar"></div>
-                </Paper>
+            <div className={classnames('option-container', { 'hidden': !visable })} onTouchTap={this.hidden.bind(this)}>
+                <TransitionGroup>
+                    {visable ? <CSSTransition key={'one'} classNames="option-package" timeout={{ enter: 200, exit: 200 }}
+                        mountOnEnter={true}
+                        unmountOnExit={true}>
+                        <div className={classnames('option-panel')} style={{ left: position.x - 240, top: position.y }} onTouchTap={this.stop}>
+                            <OptionTitle />
+                            <OptionContent />
+                            <div className="option-toolbar"></div>
+                        </div>
+                    </CSSTransition> : null}
+                </TransitionGroup>
             </div>
         );
     }

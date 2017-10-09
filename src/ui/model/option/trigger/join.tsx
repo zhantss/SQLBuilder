@@ -48,7 +48,7 @@ class JoinTrigger extends React.PureComponent<JoinTriggerProps> {
                     const target = new OptionTarget();
                     target.target = parent.get('data');
                     target.addition.push(node.get('data'));
-                    action.PUSH('join', OptionType.JOIN, target, new OptionPosition(event.nativeEvent.clientX, event.nativeEvent.clientY))
+                    action.PUSH(cn.option_join_title, OptionType.JOIN, target, new OptionPosition(event.nativeEvent.clientX, event.nativeEvent.clientY))
                 }
             }
         }

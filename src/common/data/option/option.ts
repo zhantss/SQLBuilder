@@ -3,7 +3,6 @@ import { JoinMode, SetOperationType } from '../define/extra';
 import { Expression } from '../define/expression';
 
 export interface Option {
-
 }
 
 export class Table implements Option {
@@ -24,6 +23,7 @@ export class Join implements Option {
         this.isUsing = false;
         this.mode = JoinMode.INNER;
     }
+
 }
 
 export class SetOperation {
