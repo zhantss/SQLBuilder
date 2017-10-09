@@ -9,4 +9,4 @@ In Development
 npm install
 
 ## Run example in location
-npm start
+npm run start
