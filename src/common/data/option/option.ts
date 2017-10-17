@@ -1,6 +1,6 @@
 import { Column } from './../define/expression';
 import { JoinMode, SetOperationType } from '../define/extra';
-import { Expression } from '../define/expression';
+import { Expression, AtomOption } from '../define/expression';
 
 export interface Option {
 }
@@ -15,7 +15,7 @@ export class Table implements Option {
 
 export class Join implements Option {
     mode?: JoinMode
-    on?: Expression
+    on?: Array<AtomOption>
     using?: Array<string>
     isUsing: boolean
 

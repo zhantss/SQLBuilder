@@ -3,22 +3,59 @@
  */
 export const connects = ['AND', 'OR']
 /**
- * expression option relation
+ * expression option operator
  */
-export const options = ['=', '!=', '>', '>=', '<', '<=', 'IN', 'NOT IN', 'LIKE', 'NOT LIKE'/* , 'REGEXP', 'GLOB' */]
+export const operators = ['=', '!=', '>', '>=', '<', '<=', 'IN', 'NOT IN', 'LIKE', 'NOT LIKE'/* , 'REGEXP', 'GLOB' */]
 
 export interface Expression {
+}
 
+export enum OptionOperator {
+    Equal,
+    NotEqual,
+    MoreThan,
+    MoreThanOrEqual,
+    LessThan,
+    LessThanOrEqual,
+    Include,
+    NotInclude,
+    Like,
+    NotLike
+}
+
+export function OptionOperatorEnumToSQL(enumValue: OptionOperator): string {
+    return operators[enumValue];
 }
 
 export class Option implements Expression {
     left: Expression
-    op: string
+    operator: OptionOperator
     right: Expression
 
-    constructor(left, op, right) {
+    constructor(left: Expression, operator: OptionOperator, right: Expression) {
         this.left = left;
-        this.op = op;
+        this.operator = operator;
+        this.right = right;
+    }
+}
+
+export enum OptionConnect {
+    AND,
+    OR
+}
+
+export function OptionConncetEnumToSQL(enumValue: OptionConnect): string {
+    return OptionConnect[enumValue];
+}
+
+export class Connect implements Expression {
+    left: Expression
+    connect: OptionConnect
+    right: Expression
+
+    constructor(left: Expression, connect: OptionConnect, right: Expression) {
+        this.left = left;
+        this.connect = connect;
         this.right = right;
     }
 }
@@ -26,82 +63,26 @@ export class Option implements Expression {
 export class Parentheses implements Expression {
     op?: string
     content: Expression
+
+    constructor(content: Expression) {
+        this.content = content;
+    }
 }
 
-export class Column implements Expression {
+export class AtomExpression {
+
+}
+
+export class Column extends AtomExpression {
     table?: string
     column: string
 }
 
-export class Value implements Expression {
+export class Value extends AtomExpression {
     value: string
 }
 
-export class Function implements Expression {
+export class Function extends AtomExpression {
     function: string
     props?: Array<string>
-}
-
-export class AtomOption implements Expression {
-    connect?: string
-    left: Expression
-    op: string
-    right: Expression
-
-    constructor(left, op, right, connect) {
-        this.left = left;
-        this.op = op;
-        this.right = right;
-        this.connect = connect;
-    }
-}
-
-/**
- * Option Expression Parting, WHERE/ON Parting
- * To Array<AtomOption>
- * @param exp Expression
- */
-export function optionParting(exp: Expression, connect: string): Array<AtomOption> {
-    if (exp instanceof Option) {
-        let left = exp.left;
-        let right = exp.right;
-        let op = exp.op;
-
-        if (connects.indexOf(op.toLocaleUpperCase()) != -1) {
-            return []
-                .concat(optionParting(left, connect))
-                .concat(optionParting(right, op))
-        } else if (options.indexOf(op.toLocaleUpperCase()) != -1) {
-            return [new AtomOption(left, op, right, connect)];
-        }
-    }
-    return [];
-}
-
-/**
- * combine AtomOption array, Set Option To SQL Model
- * To Expression
- * @param options Array<AtomOption>
- */
-export function optionCombine(options: Array<AtomOption>): Expression {
-    if (options == null) {
-        return null;
-    }
-    let size = options.length;
-    if (size == 1) {
-        return options[0];
-    }
-    let exp = new Option(null, null, null);
-    for (let i = 0; i < size; i++) {
-        let op = options[i];
-        if (exp.left == null && op.connect == null) {
-            exp = new Option(new Option(op.left, op.op, op.right), null, null);
-            continue;
-        }
-
-        if (exp.op == null && op.connect != null) {
-            exp = new Option(new Option(exp.left, exp.op, exp.right), op.connect, new Option(op.left, op.op, op.right));
-        }
-    }
-    return exp;
 }

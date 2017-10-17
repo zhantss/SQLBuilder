@@ -2,15 +2,19 @@ import * as React from 'react'
 import * as classnames from 'classnames'
 import * as uuid from 'uuid'
 
-import Toggle from 'material-ui/Toggle';
-import DropDownMenu from 'material-ui/DropDownMenu';
-import MenuItem from 'material-ui/MenuItem';
-import { Tabs as ScrollTabs, Tab as ScrollTab } from 'material-ui-scrollable-tabs/Tabs';
+import Toggle from 'material-ui/Toggle'
+import DropDownMenu from 'material-ui/DropDownMenu'
+import MenuItem from 'material-ui/MenuItem'
+import RaisedButton from 'material-ui/RaisedButton'
+import IconButton from 'material-ui/IconButton'
+import { Tabs as ScrollTabs, Tab as ScrollTab } from 'material-ui-scrollable-tabs/Tabs'
+
+import { SimpleIcon as Icon } from '../../../icon'
 
 import { cn } from '../../../text'
 import { connect2 } from '../../../../common/connect'
-import { DataModel } from '../../../../common/data'
-import { JoinMode } from '../../../../common/data/define/extra';
+import { DataModel, DataDefine } from '../../../../common/data'
+import { JoinMode } from '../../../../common/data/define/extra'
 import { Option, OptionTarget } from '../../../../common/data/option'
 
 interface JoinContentProps {
@@ -73,6 +77,7 @@ class JoinContent extends React.PureComponent<JoinContentProps, JoinContentState
     tabs(toggle) {
         const res = new Array();
         const { target } = this.props;
+        const { join } = this.state;
 
         if (target.target && target.addition) {
             target.addition.forEach(el => {
@@ -83,6 +88,16 @@ class JoinContent extends React.PureComponent<JoinContentProps, JoinContentState
                     };
                     const children = new Array();
                     if (el instanceof DataModel.Data.Model) {
+                        if (!join.isUsing) {
+                            const on = join.on;
+                            if (on) {
+
+                            } else {
+                                
+                            }
+                        } else {
+
+                        }
                     } else if (el instanceof DataModel.Data.Source) {
                     } else if (el instanceof DataModel.Data.Select) {
                     }
@@ -114,6 +129,11 @@ class JoinContent extends React.PureComponent<JoinContentProps, JoinContentState
                 <ScrollTabs tabType={`scrollable`}>
                     {this.tabs(toggle)}
                 </ScrollTabs>
+                <div className="option-join-bottom-tool">
+                    <IconButton><Icon name={"add"}/></IconButton>
+                    <IconButton><Icon name={"delete_forever"}/></IconButton>
+                    <IconButton><Icon name={"chevron_left"}/><Icon name={"chevron_right"}/></IconButton>
+                </div>
             </div>
         );
     }
