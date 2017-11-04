@@ -14,8 +14,12 @@ import { SimpleIcon as Icon } from '../../../icon'
 import { cn } from '../../../text'
 import { connect2 } from '../../../../common/connect'
 import { DataModel, DataDefine } from '../../../../common/data'
+import { option as optionAction } from '../../../../common/actions'
 import { JoinMode } from '../../../../common/data/define/extra'
 import { Option, OptionTarget } from '../../../../common/data/option'
+import { Expression, OptionOperator } from '../../../../common/data/define/expression'
+import { Translate, AtomOption, ConnectAtomOption, GroupParentheses } from '../../../../common/data/option/translate'
+import ExpressionList from './expressionList'
 
 interface JoinContentProps {
     actions?: any
@@ -74,39 +78,42 @@ class JoinContent extends React.PureComponent<JoinContentProps, JoinContentState
         })
     }
 
+    flush(key_: any, new_: Array<Translate>) {
+        // TODO ACTION OPTION[JOIN] SUBMIT
+        const { actions, options } = this.props;
+        let join = options.get(key_);
+        let action: optionAction.$actions = actions.option;
+        if (join == null) {
+            join = new Option.Join();
+        } else {
+            join = Object.create(join);
+        }
+        join.on = new_;
+        action.SUBMIT(key_, join);
+    }
+
     tabs(toggle) {
         const res = new Array();
-        const { target } = this.props;
-        const { join } = this.state;
+        const { target, options } = this.props;
 
         if (target.target && target.addition) {
             target.addition.forEach(el => {
-                if (el && el.name) {
-                    let label = <span style={{ fontSize: "16px" }}>{el.name}</span>;
+                if (el && el.id && el.item) {
+                    let label = <span style={{ fontSize: "16px" }}>{el.item.name}</span>;
                     const buttonStyle = {
                         lineHeight: "48px"
                     };
-                    const children = new Array();
-                    if (el instanceof DataModel.Data.Model) {
-                        if (!join.isUsing) {
-                            const on = join.on;
-                            if (on) {
-
-                            } else {
-                                
-                            }
-                        } else {
-
-                        }
-                    } else if (el instanceof DataModel.Data.Source) {
-                    } else if (el instanceof DataModel.Data.Select) {
+                    const addition = el.id;
+                    let join = options.get(addition);
+                    if (join == null) {
+                        join = new Option.Join();
                     }
                     const tab = <ScrollTab key={uuid.v4()} label={label} buttonStyle={buttonStyle}>
                         <div className={'option-join-tool'}>
                             {toggle}
                             {<ModeMenu mode={this.state.join.mode} handleModeChange={this.handleModeChange.bind(this)}/>}
                         </div>
-                        {children}
+                        <ExpressionList className={"option-join-exp"} addition={addition} expressions={join.on ? join.on : []} flush={this.flush.bind(this)} left={[]} right={[]}/>
                     </ScrollTab>;
                     res.push(tab);
                 }

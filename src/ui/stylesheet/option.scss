@@ -12,7 +12,7 @@
     .option-panel {
         position: absolute;
         min-height: 180px;
-        width: 480px;
+        min-width: 480px;
         z-index: 1001;
         border: 1px solid #e6e6e6;
         box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 10px, rgba(0, 0, 0, 0.23) 0px 3px 10px;
@@ -82,4 +82,42 @@
 .option-package-exit.option-package-exit-active {
     opacity: 0.01;
     transition: opacity 200ms ease-in;
+}
+
+.option-join-exp {
+    max-height: 600px;
+    overflow-y: auto;
+    .expression-item {
+        >div {
+            vertical-align: top !important;
+        }
+        >span {
+            height: 48px;
+            line-height: 48px;
+            display: inline-block;
+        }
+        .item-btn {
+            width: 48px;
+            display: inline-block;
+            button {
+
+            }
+        }
+        .item-andor {
+            width: 48px;
+            display: inline-block;
+            margin-left: 15px;
+        }
+    }
+    .list-add-btn {
+        button {
+            margin-right: 15px !important;
+            height: 36px !important;
+            /* min-width: 60px !important; */
+            padding: 0 !important;
+            border-radius: 2px !important;
+            background-color: rgb(255, 255, 255) !important;
+            box-sizing: border-box !important;
+        }
+    }
 }

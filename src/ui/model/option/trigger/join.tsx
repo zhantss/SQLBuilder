@@ -6,7 +6,7 @@ import { cn } from '../../../text'
 import { connect2 } from '../../../../common/connect'
 
 import { option as optionAction } from '../../../../common/actions'
-import { Option, OptionType, OptionTarget, OptionPosition } from '../../../../common/data/option'
+import { Option, OptionType, OptionTarget, OptionItem, OptionPosition } from '../../../../common/data/option'
 import { JoinMode } from '../../../../common/data/define/extra';
 
 interface JoinTriggerProps {
@@ -46,8 +46,8 @@ class JoinTrigger extends React.PureComponent<JoinTriggerProps> {
                 const parent = graphic.get(parentKey);
                 if (parent) {
                     const target = new OptionTarget();
-                    target.target = parent.get('data');
-                    target.addition.push(node.get('data'));
+                    target.target = new OptionItem(parent.get('key') + ".JOIN",  parent.get('data'));
+                    target.addition.push(new OptionItem(node.get('key') + ".JOIN", node.get('data')));
                     action.PUSH(cn.option_join_title, OptionType.JOIN, target, new OptionPosition(event.nativeEvent.clientX, event.nativeEvent.clientY))
                 }
             }

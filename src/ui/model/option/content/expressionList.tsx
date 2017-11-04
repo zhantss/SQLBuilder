@@ -1,11 +1,16 @@
 import * as React from 'react'
 import * as classnames from 'classnames'
+import * as uuid from 'uuid'
 
 import { List, ListItem } from 'material-ui/List'
 import AutoComplete from 'material-ui/AutoComplete'
 import DropDownMenu from 'material-ui/DropDownMenu'
 import SelectField from 'material-ui/SelectField'
+import IconButton from 'material-ui/IconButton'
 import MenuItem from 'material-ui/MenuItem'
+
+import { SimpleIcon as Icon } from '../../../icon'
+import Select from './select'
 
 import { cn } from '../../../text'
 import { connect2 } from '../../../../common/connect'
@@ -14,29 +19,197 @@ import { Expression, operators, OptionOperatorEnumToSQL, OptionOperator, connect
 import { Translate, AtomOption, ConnectAtomOption, GroupParentheses } from '../../../../common/data/option/translate'
 
 interface ExpressionListProps {
+    addition: any
     expressions: Array<Translate>
+    flush(key_: any, new_: Expression): any
+    left: Array<any>
+    right: Array<any>
     className?: any
-    left?: Array<any>
-    right?: Array<any>
 }
 
 class ExpressionList extends React.PureComponent<ExpressionListProps> {
 
+    ItemStyle = {
+        padding: "0 9px"
+    }
+
+    AcRootLStyle = {
+        width: "125px",
+        marginLeft: "10px"
+    }
+
+    AcTextLStyle = {
+        width: "125px"
+    }
+
+    AcRootRStyle = {
+        width: "125px",
+        marginLeft: "10px"
+    }
+
+    AcTextRStyle = this.AcTextLStyle
+
+    AcRootOStyle = {
+        width: "80px",
+        marginLeft: "10px"
+    }
+
+    AcTextOStyle = {
+        width: "80px"
+    }
+
+    AndOrRootStyle = {
+        width: "48px",
+    }
+
+    AndOrTextStyle = {
+        width: "48px"
+    }
+
+    temp = null;
+
+    constructor(props) {
+        super(props);
+        this.temp = this.props.expressions;
+    }
+
+    updateTemp(exp) {
+        this.temp = exp;
+    }
+
+    componentWillUnmount() {
+        const { addition, flush } = this.props;
+        flush(addition, this.temp)
+    }
+
+    newCAOTranslate(event) {
+        const { expressions, addition, flush } = this.props;
+        const identity = event.currentTarget.dataset.identity;
+        let n: Array<Translate> = [].concat(expressions);
+        let control = this.findTranslate(n, identity);
+        if (control == null) {
+            n.push(new ConnectAtomOption(new AtomOption(null, OptionOperator.Equal, null), n.length > 0 ? OptionConnect.AND : null));
+        } else {
+            if (control instanceof GroupParentheses) {
+                control.content.push(new ConnectAtomOption(new AtomOption(null, OptionOperator.Equal, null), OptionConnect.AND));
+            }
+        }
+        this.updateTemp(n);
+        flush(addition, n)
+    }
+
+    newGPTranslate(event) {
+        const { expressions, addition, flush } = this.props;
+        const identity = event.currentTarget.dataset.identity;
+        let n: Array<Translate> = [].concat(expressions);
+        let control = this.findTranslate(n, identity);
+        if (control == null) {
+            n.push(new GroupParentheses([], n.length > 0 ? OptionConnect.AND : null))
+        } else {
+            if (control instanceof GroupParentheses) {
+                control.content.push(new GroupParentheses([], OptionConnect.AND));
+            }
+        }
+        this.updateTemp(n);
+        flush(addition, n)
+    }
+
+    deleteTranslate(event) {
+        const { expressions, addition, flush } = this.props;
+        const identity = event.currentTarget.dataset.identity;
+        let n: Array<Translate> = [].concat(expressions);
+        let find = this.findThisPreTranlate(n, identity);
+        if (find == null) {
+            return;
+        }
+        let control = find.control;
+        let last = find.last;
+        if (control == null) {
+            delete n[last];
+        }
+        if (control instanceof GroupParentheses) {
+            delete control.content[last];
+        }
+        this.updateTemp(n);
+        flush(addition, n)
+    }
+
+    findThisPreTranlate(exps: Array<Translate>, identity: string): any {
+        let n: Array<Translate> = exps;
+        let cor = identity.split(".");
+        let length = cor.length;
+        let last = null;
+        if (length == 1) {
+            return {
+                last: Number(cor[0]),
+                control: null
+            };
+        }
+        last = cor[length - 1];
+        cor = cor.slice(0, length - 1);
+        let control: any = n;
+        for (let c in cor) {
+            const curr = Number(cor[c]);
+            if (!isNaN(curr)) {
+                if (control instanceof Array) {
+                    control = control[curr]
+                } else if (control instanceof GroupParentheses) {
+                    control = control.content[curr];
+                }
+            } else {
+                return null;
+            }
+        }
+        return {
+            last: Number(last),
+            control: control
+        };
+    }
+
+    findTranslate(exps: Array<Translate>, identity: string): any {
+        let n: Array<Translate> = exps;
+        const cor = identity.split(".");
+        let control: any = n;
+        for (let c in cor) {
+            const curr = Number(cor[c]);
+            if (!isNaN(curr)) {
+                if (control instanceof Array) {
+                    control = control[curr]
+                } else if (control instanceof GroupParentheses) {
+                    control = control.content[curr];
+                }
+            } else {
+                return null;
+            }
+        }
+        return control;
+    }
+
+    updateConnectTranslate(identity: string, value_: any) {
+        const { expressions, addition, flush } = this.props;
+        let n: Array<Translate> = [].concat(expressions);
+        let control = this.findTranslate(n, identity);
+        if (control instanceof ConnectAtomOption) {
+            control.connect = value_;
+            this.updateTemp(n);
+        } else if (control instanceof GroupParentheses) {
+            control.connect = value_;
+            this.updateTemp(n);
+        }
+    }
+
+    updateOperatorTranslate(identity: string, value_: any) {
+        const { expressions, addition, flush } = this.props;
+        let n: Array<Translate> = [].concat(expressions);
+        let control = this.findTranslate(n, identity);
+        if (control instanceof ConnectAtomOption) {
+            control.content.operator = value_;
+            this.updateTemp(n);
+        }
+    }
+
     listRender() {
         const { expressions, left, right } = this.props;
-        if (expressions == null) {
-            return <List>
-                <ListItem
-                    primaryText={
-                        <div className={"expression-item"} data-identity={"INIT"}>
-                            <AutoComplete filter={AutoComplete.fuzzyFilter} dataSource={left} />
-                            <AutoComplete filter={AutoComplete.fuzzyFilter} dataSource={operators} />
-                            <AutoComplete filter={AutoComplete.fuzzyFilter} dataSource={right} />
-                        </div>
-                    }
-                />
-            </List>;
-        }
         return this.listCreate(expressions);
     }
 
@@ -47,21 +220,69 @@ class ExpressionList extends React.PureComponent<ExpressionListProps> {
             const curr = this.listItemCreate(translate, i.toString());
             if (curr) { items.push(curr) };
         }
+        items.push(<ListItem
+            key={"new"}
+            primaryText={this.toolItemCreate("new")}
+            hoverColor="none"
+            disabled={true}
+            style={this.ItemStyle} />);
         return <List>{items}</List>
+    }
+
+    toolItemCreate(identity: string) {
+        return <div className="list-add-btn">
+            <IconButton data-identity={identity} onTouchTap={this.newCAOTranslate.bind(this)}><Icon name={"add"} /></IconButton>
+            <IconButton data-identity={identity} onTouchTap={this.newGPTranslate.bind(this)}><Icon name={"chevron_left"} /><Icon name={"chevron_right"} /></IconButton>
+        </div>
     }
 
     listItemCreate(tranlate: Translate, identity: string) {
         const { left, right } = this.props;
         if (tranlate instanceof GroupParentheses) {
             const items = new Array();
+            const connect = tranlate.connect;
             const content = tranlate.content;
             for (let i = 0; i < content.length; i++) {
                 const tc = content[i];
                 const curr = this.listItemCreate(tc, identity + "." + i.toString());
                 if (curr) { items.push(curr) };
             }
+            items.push(<ListItem
+                key={identity}
+                primaryText={this.toolItemCreate(identity)}
+                hoverColor="none"
+                disabled={true}
+                style={this.ItemStyle} />);
             return <ListItem
-                primaryText="Parentheses"
+                key={identity}
+                hoverColor="none"
+                disabled={true}
+                style={this.ItemStyle}
+                primaryText={
+                    <div className={"expression-item"} data-identity={identity}>
+                        <div className="item-btn">
+                            <IconButton data-identity={identity} onTouchTap={this.deleteTranslate.bind(this)}><Icon name={"delete_forever"} /></IconButton>
+                        </div>
+                        <div className={"item-andor"}>
+                            {
+                                connect != null ?
+                                    <Select
+                                        identity={identity}
+                                        name={identity + "-andor"}
+                                        init={OptionConncetEnumToSQL(connect)}
+                                        update={this.updateConnectTranslate.bind(this)}
+                                        style={this.AndOrRootStyle}
+                                        textFieldStyle={this.AndOrTextStyle}
+                                        openOnFocus={true}
+                                        filter={AutoComplete.noFilter}
+                                        dataSource={connects}
+                                    />
+                                    : null
+                            }
+                        </div>
+                        {<span>GroupParentheses TODO</span>}
+                    </div>
+                }
                 nestedItems={items}
             />
         }
@@ -69,19 +290,45 @@ class ExpressionList extends React.PureComponent<ExpressionListProps> {
             const connect = tranlate.connect;
             const content = tranlate.content;
             return <ListItem
+                key={identity}
+                hoverColor="none"
+                disabled={true}
+                style={this.ItemStyle}
                 primaryText={
                     <div className={"expression-item"} data-identity={identity}>
-                        {
-                            connect != null ?
-                                <SelectField value={connect}>
-                                    <MenuItem value={OptionConnect.AND} primaryText={OptionConncetEnumToSQL(OptionConnect.AND)} />
-                                    <MenuItem value={OptionConnect.OR} primaryText={OptionConncetEnumToSQL(OptionConnect.OR)} />
-                                </SelectField>
-                                : null
-                        }
-                        <AutoComplete filter={AutoComplete.fuzzyFilter} dataSource={left} defaultValue={content.left.toString()} />
-                        <AutoComplete filter={AutoComplete.fuzzyFilter} dataSource={operators} defaultValue={OptionOperatorEnumToSQL(content.operator)} />
-                        <AutoComplete filter={AutoComplete.fuzzyFilter} dataSource={right} defaultValue={content.right.toString()} />
+                        <div className="item-btn">
+                            <IconButton data-identity={identity} onTouchTap={this.deleteTranslate.bind(this)}><Icon name={"delete_forever"} /></IconButton>
+                        </div>
+                        <div className={"item-andor"}>
+                            {
+                                connect != null ?
+                                    <Select
+                                        identity={identity}
+                                        name={identity + "-andor"}
+                                        init={OptionConncetEnumToSQL(connect)}
+                                        update={this.updateConnectTranslate.bind(this)}
+                                        style={this.AndOrRootStyle}
+                                        textFieldStyle={this.AndOrTextStyle}
+                                        openOnFocus={true}
+                                        filter={AutoComplete.noFilter}
+                                        dataSource={connects}
+                                    />
+                                    : null
+                            }
+                        </div>
+                        <AutoComplete style={this.AcRootLStyle} textFieldStyle={this.AcTextLStyle} openOnFocus={true} filter={AutoComplete.fuzzyFilter} dataSource={left} defaultValue={content.left ? content.left.toString() : ""} />
+                        <Select
+                            identity={identity}
+                            name={identity + "-operator"}
+                            init={OptionOperatorEnumToSQL(content.operator)}
+                            update={this.updateOperatorTranslate.bind(this)}
+                            style={this.AcRootOStyle}
+                            textFieldStyle={this.AcTextOStyle}
+                            openOnFocus={true}
+                            filter={AutoComplete.noFilter}
+                            dataSource={operators}
+                        />
+                        <AutoComplete style={this.AcRootRStyle} textFieldStyle={this.AcTextRStyle} openOnFocus={true} filter={AutoComplete.fuzzyFilter} dataSource={right} defaultValue={content.right ? content.right.toString() : ""} />
                     </div>
                 }
             />
@@ -92,8 +339,12 @@ class ExpressionList extends React.PureComponent<ExpressionListProps> {
     render() {
         const { expressions, className } = this.props
         return (
-            <div className={className ? className : null}></div>
+            <div className={className ? className : null}>
+                {this.listRender()}
+            </div>
         );
     }
 }
 
+
+export default ExpressionList

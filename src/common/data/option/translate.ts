@@ -19,7 +19,7 @@ export class AtomOption implements Expression {
 export class ConnectAtomOption implements Translate {
     connect?: OptionConnect
     content: AtomOption
-    constructor(content: AtomOption, connect: OptionConnect) {
+    constructor(content: AtomOption, connect?: OptionConnect) {
         this.content = content;
         this.connect = connect;
     }
@@ -28,7 +28,7 @@ export class ConnectAtomOption implements Translate {
 export class GroupParentheses implements Translate {
     connect?: OptionConnect
     content: Array<Translate>
-    constructor(content: Array<Translate>, connect: OptionConnect) {
+    constructor(content: Array<Translate>, connect?: OptionConnect) {
         this.content = content;
         this.connect = connect;
         if (this.content == null) {
