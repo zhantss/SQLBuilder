@@ -1,7 +1,7 @@
-import { Column } from './../define/expression';
-import { JoinMode, SetOperationType } from '../define/extra';
-import { Expression } from '../define/expression';
-import { Translate } from './translate';
+import { Column } from './../define/expression'
+import { JoinMode, SetOperationType } from '../define/extra'
+import { Expression } from '../define/expression'
+import { Translate } from './translate'
 
 export interface Option {
 }
