@@ -137,9 +137,6 @@ class JoinContent extends React.PureComponent<JoinContentProps, JoinContentState
                     {this.tabs(toggle)}
                 </ScrollTabs>
                 <div className="option-join-bottom-tool">
-                    <IconButton><Icon name={"add"}/></IconButton>
-                    <IconButton><Icon name={"delete_forever"}/></IconButton>
-                    <IconButton><Icon name={"chevron_left"}/><Icon name={"chevron_right"}/></IconButton>
                 </div>
             </div>
         );

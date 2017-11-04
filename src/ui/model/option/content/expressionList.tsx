@@ -261,7 +261,7 @@ class ExpressionList extends React.PureComponent<ExpressionListProps> {
                 primaryText={
                     <div className={"expression-item"} data-identity={identity}>
                         <div className="item-btn">
-                            <IconButton data-identity={identity} onTouchTap={this.deleteTranslate.bind(this)}><Icon name={"delete_forever"} /></IconButton>
+                            <IconButton data-identity={identity} onTouchTap={this.deleteTranslate.bind(this)}><Icon name={"clear"} /></IconButton>
                         </div>
                         <div className={"item-andor"}>
                             {
@@ -297,7 +297,7 @@ class ExpressionList extends React.PureComponent<ExpressionListProps> {
                 primaryText={
                     <div className={"expression-item"} data-identity={identity}>
                         <div className="item-btn">
-                            <IconButton data-identity={identity} onTouchTap={this.deleteTranslate.bind(this)}><Icon name={"delete_forever"} /></IconButton>
+                            <IconButton data-identity={identity} onTouchTap={this.deleteTranslate.bind(this)}><Icon name={"clear"} /></IconButton>
                         </div>
                         <div className={"item-andor"}>
                             {
