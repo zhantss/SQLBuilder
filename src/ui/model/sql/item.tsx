@@ -52,7 +52,9 @@ class SQLItem extends React.PureComponent<SQLItemProps, SQLItemState> {
         const { option } = actions;
         let action: optionAction.$actions = option;
         const key = node.get('key');
-        action.SUBMIT(key, new Option.Table());
+        const modelKey = key + ".SQLMODEL";
+        const optionSQLModel = new Option.Table();
+        action.SUBMIT(modelKey, optionSQLModel);
     }
 
     componentWillUnmount() {
@@ -60,7 +62,8 @@ class SQLItem extends React.PureComponent<SQLItemProps, SQLItemState> {
         const { option } = actions;
         let action: optionAction.$actions = option;
         const key = node.get('key');
-        action.REMOVE(key);
+        const modelKey = key + ".SQLMODEL";
+        action.REMOVE(modelKey);
     }
 
     model(event) {
@@ -101,7 +104,7 @@ class SQLItem extends React.PureComponent<SQLItemProps, SQLItemState> {
 
     render() {
         const { connectDragSource, isDragging, node, isOver, canDrop } = this.props;
-
+        
         return connectDragSource(
             <div className={classnames('model-item', 'model-sql', { over: isOver }, { can: canDrop })} onMouseOver={this.over.bind(this)} onMouseLeave={this.leave.bind(this)}>
                 <div className={classnames('item-package', node.get('relation'))} data-key={node.get('key')}>{node.get('name')}</div>
@@ -113,7 +116,8 @@ class SQLItem extends React.PureComponent<SQLItemProps, SQLItemState> {
                         targetOrigin={{ horizontal: 'left', vertical: 'top' }}
                         touchTapCloseDelay={10}
                     >
-                        <MenuItem primaryText={cn.option_setting} onTouchTap={this.model.bind(this)} />
+                        <SQLModelTrigger primaryText={cn.option_setting} node={node} actions={this.props.actions} />
+                        {/* <MenuItem primaryText={cn.option_setting} onTouchTap={this.model.bind(this)} /> */}
                         <MenuItem primaryText={cn.option_delete} onTouchTap={this.delete.bind(this)} />
                     </IconMenu>
                 </div>

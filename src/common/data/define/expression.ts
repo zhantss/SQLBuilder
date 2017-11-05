@@ -80,6 +80,11 @@ export class Column extends AtomExpression {
 
 export class Value extends AtomExpression {
     value: string
+
+    constructor(value: string) {
+        super();
+        this.value = value;
+    }
 }
 
 export class Function extends AtomExpression {

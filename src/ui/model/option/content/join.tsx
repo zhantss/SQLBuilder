@@ -19,7 +19,7 @@ import { JoinMode } from '../../../../common/data/define/extra'
 import { Option, OptionTarget } from '../../../../common/data/option'
 import { Expression, OptionOperator } from '../../../../common/data/define/expression'
 import { Translate, AtomOption, ConnectAtomOption, GroupParentheses } from '../../../../common/data/option/translate'
-import ExpressionList from './expressionList'
+import ExpressionList from './utils/expressionList'
 
 interface JoinContentProps {
     actions?: any

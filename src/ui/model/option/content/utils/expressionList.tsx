@@ -9,14 +9,15 @@ import SelectField from 'material-ui/SelectField'
 import IconButton from 'material-ui/IconButton'
 import MenuItem from 'material-ui/MenuItem'
 
-import { SimpleIcon as Icon } from '../../../icon'
+import { SimpleIcon as Icon } from '../../../../icon'
 import Select from './select'
+import Input from './input'
 
-import { cn } from '../../../text'
-import { connect2 } from '../../../../common/connect'
-import { DataModel, DataDefine } from '../../../../common/data'
-import { Expression, operators, OptionOperatorEnumToSQL, OptionOperator, connects, OptionConnect, OptionConncetEnumToSQL } from '../../../../common/data/define/expression'
-import { Translate, AtomOption, ConnectAtomOption, GroupParentheses } from '../../../../common/data/option/translate'
+import { cn } from '../../../../text'
+import { connect2 } from '../../../../../common/connect'
+import { DataModel, DataDefine } from '../../../../../common/data'
+import { Expression, operators, OptionOperatorEnumToSQL, OptionOperator, connects, OptionConnect, OptionConncetEnumToSQL } from '../../../../../common/data/define/expression'
+import { Translate, AtomOption, ConnectAtomOption, GroupParentheses } from '../../../../../common/data/option/translate'
 
 interface ExpressionListProps {
     addition: any
@@ -91,7 +92,7 @@ class ExpressionList extends React.PureComponent<ExpressionListProps> {
             n.push(new ConnectAtomOption(new AtomOption(null, OptionOperator.Equal, null), n.length > 0 ? OptionConnect.AND : null));
         } else {
             if (control instanceof GroupParentheses) {
-                control.content.push(new ConnectAtomOption(new AtomOption(null, OptionOperator.Equal, null), OptionConnect.AND));
+                control.content.push(new ConnectAtomOption(new AtomOption(null, OptionOperator.Equal, null), control.content.length > 0 ? OptionConnect.AND : null));
             }
         }
         this.updateTemp(n);
@@ -125,10 +126,22 @@ class ExpressionList extends React.PureComponent<ExpressionListProps> {
         let control = find.control;
         let last = find.last;
         if (control == null) {
-            delete n[last];
+            n.splice(last, 1);
         }
         if (control instanceof GroupParentheses) {
-            delete control.content[last];
+            control.content.splice(last, 1);
+            if (control.content.length >= 1) {
+                control = control.content[0];
+                if (control instanceof ConnectAtomOption || control instanceof GroupParentheses) {
+                    control.connect = null;
+                }
+            }
+        }
+        if (n.length >= 1) {
+            control = n[0];
+            if (control instanceof ConnectAtomOption || control instanceof GroupParentheses) {
+                control.connect = null;
+            }
         }
         this.updateTemp(n);
         flush(addition, n)
@@ -208,6 +221,20 @@ class ExpressionList extends React.PureComponent<ExpressionListProps> {
         }
     }
 
+    updateInputTranslate(identity: string, right: boolean, value_: any) {
+        const { expressions, addition, flush } = this.props;
+        let n: Array<Translate> = [].concat(expressions);
+        let control = this.findTranslate(n, identity);
+        if (control instanceof ConnectAtomOption) {
+            if (!right) {
+                control.content.left = value_;
+            } else {
+                control.content.right = value_;
+            }
+            this.updateTemp(n);
+        }
+    }
+
     listRender() {
         const { expressions, left, right } = this.props;
         return this.listCreate(expressions);
@@ -269,7 +296,7 @@ class ExpressionList extends React.PureComponent<ExpressionListProps> {
                                     <Select
                                         identity={identity}
                                         name={identity + "-andor"}
-                                        init={OptionConncetEnumToSQL(connect)}
+                                        init={connect}
                                         update={this.updateConnectTranslate.bind(this)}
                                         style={this.AndOrRootStyle}
                                         textFieldStyle={this.AndOrTextStyle}
@@ -305,7 +332,7 @@ class ExpressionList extends React.PureComponent<ExpressionListProps> {
                                     <Select
                                         identity={identity}
                                         name={identity + "-andor"}
-                                        init={OptionConncetEnumToSQL(connect)}
+                                        init={connect}
                                         update={this.updateConnectTranslate.bind(this)}
                                         style={this.AndOrRootStyle}
                                         textFieldStyle={this.AndOrTextStyle}
@@ -316,11 +343,20 @@ class ExpressionList extends React.PureComponent<ExpressionListProps> {
                                     : null
                             }
                         </div>
-                        <AutoComplete style={this.AcRootLStyle} textFieldStyle={this.AcTextLStyle} openOnFocus={true} filter={AutoComplete.fuzzyFilter} dataSource={left} defaultValue={content.left ? content.left.toString() : ""} />
+                        <Input 
+                            identity={identity}
+                            name={identity + "-left"}
+                            init={content.left}
+                            update={this.updateInputTranslate.bind(this)}
+                            style={this.AcRootLStyle} 
+                            textFieldStyle={this.AcTextLStyle} 
+                            openOnFocus={true} 
+                            filter={AutoComplete.fuzzyFilter} 
+                            dataSource={left} />
                         <Select
                             identity={identity}
                             name={identity + "-operator"}
-                            init={OptionOperatorEnumToSQL(content.operator)}
+                            init={content.operator}
                             update={this.updateOperatorTranslate.bind(this)}
                             style={this.AcRootOStyle}
                             textFieldStyle={this.AcTextOStyle}
@@ -328,7 +364,17 @@ class ExpressionList extends React.PureComponent<ExpressionListProps> {
                             filter={AutoComplete.noFilter}
                             dataSource={operators}
                         />
-                        <AutoComplete style={this.AcRootRStyle} textFieldStyle={this.AcTextRStyle} openOnFocus={true} filter={AutoComplete.fuzzyFilter} dataSource={right} defaultValue={content.right ? content.right.toString() : ""} />
+                        <Input 
+                            identity={identity}
+                            name={identity + "-right"}
+                            init={content.right}
+                            right={true}
+                            update={this.updateInputTranslate.bind(this)}
+                            style={this.AcRootRStyle} 
+                            textFieldStyle={this.AcTextRStyle} 
+                            openOnFocus={true} 
+                            filter={AutoComplete.fuzzyFilter} 
+                            dataSource={right} />
                     </div>
                 }
             />
