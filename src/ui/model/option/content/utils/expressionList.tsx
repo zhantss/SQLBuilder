@@ -16,7 +16,7 @@ import Input from './input'
 import { cn } from '../../../../text'
 import { connect2 } from '../../../../../common/connect'
 import { DataModel, DataDefine } from '../../../../../common/data'
-import { Expression, operators, OptionOperatorEnumToSQL, OptionOperator, connects, OptionConnect, OptionConncetEnumToSQL } from '../../../../../common/data/define/expression'
+import { Expression, operators, OptionOperatorEnumToSQL, OptionOperator, connects, OptionConnect, OptionConncetEnumToSQL, Value, Column, Function } from '../../../../../common/data/define/expression'
 import { Translate, AtomOption, ConnectAtomOption, GroupParentheses } from '../../../../../common/data/option/translate'
 
 interface ExpressionListProps {
@@ -25,6 +25,7 @@ interface ExpressionListProps {
     flush(key_: any, new_: Expression): any
     left: Array<any>
     right: Array<any>
+    match?: boolean
     className?: any
 }
 
@@ -74,8 +75,38 @@ class ExpressionList extends React.PureComponent<ExpressionListProps> {
         this.temp = this.props.expressions;
     }
 
+    match(props) {
+        const { expressions, match, left, right, addition, flush } = props;
+        if ((expressions == null || expressions.length <= 0) && match && left && right) {
+            const exps = new Array()
+            left.forEach(l => {
+                right.forEach(r => {
+                    if (l == r) {
+                        exps.push(
+                            new ConnectAtomOption(
+                                new AtomOption(new Column(l), 
+                                OptionOperator.Equal, 
+                                new Column(r)), 
+                                exps.length == 0 ? null : OptionConnect.AND)
+                            );
+                    }
+                })
+            });
+            this.temp = exps;
+            flush(addition, this.temp);
+        }
+    }
+
     updateTemp(exp) {
         this.temp = exp;
+    }
+
+    componentWillReceiveProps(nextProps) {
+        this.temp = nextProps.expressions;
+    }
+
+    componentWillMount() {
+        this.match(this.props);
     }
 
     componentWillUnmount() {

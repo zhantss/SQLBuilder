@@ -21,7 +21,8 @@ import './style/icon.scss'
 import * as ui from './ui'
 
 //import * as alasql from 'alasql'
-//console.log(alasql.parse('SELECT A.A, B.B, C.C FROM A LEFT JOIN B ON A.A = B.BA LEFT JOIN (SELECT * FROM AC) C ON (A.A = C.CA OR A.C = C.CC) AND B.B = C.CB AND C.C > 100'));
+//console.log(alasql.parse('SELECT A.A AS AA, B.B, C.C FROM A LEFT JOIN B ON A.A = B.BA LEFT JOIN (SELECT * FROM AC) C ON (A.A = C.CA OR A.C = C.CC) AND B.B = C.CB AND C.C > 100'));
+//console.log(alasql.parse('SELECT A.A, B.B FROM (SELECT C.A, D.B FROM C, D) A, B WHERE (B.C = 100 AND B.D = 1000) AND A.G = 2000'));
 //console.log(alasql.parse('SELECT city.*, country.* FROM city LEFT OUTER JOIN country USING countryid, A'))
 //console.log(alasql.parse('SELECT A FROM B UNION SELECT A FROM C EXCEPT SELECT A FROM D'))
 //console.log(alasql.yy)

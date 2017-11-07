@@ -15,7 +15,7 @@ interface SelectState {
     index: number
 }
 
-class Select extends  React.PureComponent<SelectProps, SelectState> {
+class Select extends React.PureComponent<SelectProps, SelectState> {
 
     constructor(props) {
         super(props);
@@ -45,7 +45,7 @@ class Select extends  React.PureComponent<SelectProps, SelectState> {
     }
 
     render() {
-        const props = {...this.props};
+        const props = { ...this.props };
         delete props["identity"];
         delete props["update"];
         delete props["init"];

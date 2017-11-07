@@ -37,6 +37,10 @@ export class Option implements Expression {
         this.operator = operator;
         this.right = right;
     }
+
+    toString() {
+        return this.left.toString() + " " + operators[this.operator] + " " + this.right.toString();
+    }
 }
 
 export enum OptionConnect {
@@ -58,6 +62,10 @@ export class Connect implements Expression {
         this.connect = connect;
         this.right = right;
     }
+
+    toString() {
+        return this.left.toString() + " " + connects[this.connect] + " " + this.right.toString();
+    }
 }
 
 export class Parentheses implements Expression {
@@ -66,6 +74,12 @@ export class Parentheses implements Expression {
 
     constructor(content: Expression) {
         this.content = content;
+    }
+
+    toString() {
+        let s = this.op ? this.op + " " : "";
+        s = s + this.content.toString();
+        return s;
     }
 }
 
@@ -76,6 +90,28 @@ export class AtomExpression {
 export class Column extends AtomExpression {
     table?: string
     column: string
+
+    constructor(column: string, table?: string) {
+        super();
+        this.column = column;
+        this.table = table;
+    }
+
+    toString(): string {
+        let str = this.table ? this.table + "." : "";
+        str = str + this.column;
+        // TODO alias
+        return str;
+    }
+}
+
+export class AllColumn extends Column {
+    table?: string
+    column: string
+
+    constructor(table?: string) {
+        super("*", table);
+    }
 }
 
 export class Value extends AtomExpression {
@@ -84,6 +120,10 @@ export class Value extends AtomExpression {
     constructor(value: string) {
         super();
         this.value = value;
+    }
+
+    toString() {
+        return this.value;
     }
 }
 

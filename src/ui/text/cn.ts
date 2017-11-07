@@ -18,3 +18,6 @@ export const option_delete = "删除"
 export const option_join_title = "关联"
 export const option_join_using = "切换使用USING"
 export const option_join_on = "切换使用ON"
+
+export const option_table_alias = "别名"
+export const option_table_field_select = "字段选择"

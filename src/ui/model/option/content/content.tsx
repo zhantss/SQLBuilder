@@ -5,6 +5,7 @@ import { cn } from '../../../text'
 import { connect2 } from '../../../../common/connect'
 import { OptionType, OptionTarget } from '../../../../common/data/option'
 import JoinContent from './join'
+import TableContent from './table'
 
 interface OptionContentProps {
     graphic?: any,
@@ -24,12 +25,12 @@ class OptionContent extends React.PureComponent<OptionContentProps> {
             case OptionType.SOURCE: {
                 // TODO
                 // Table Alias/SELECT ITEMs & Alias
-                return null;
+                return <TableContent />;
             }
             case OptionType.SQLMODEL: {
                 // TODO
                 // similar for SOURCE
-                return null;
+                return <TableContent />;
             }
             case OptionType.SELECT: {
                 // TODO

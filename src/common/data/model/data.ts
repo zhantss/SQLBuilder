@@ -10,7 +10,7 @@ export class Field {
     name: string
     type?: string   //TODO
 
-    constructor(name: string, type: string) {
+    constructor(name: string, type?: string) {
         this.name = name;
         this.type = type;
     }
@@ -36,12 +36,14 @@ export class Source implements Data {
 export class Model implements Data {
     name: string
     sql: string
+    fields: Array<Field>
     type = DataType.MODEL
     // TODO Model JSON ?
 
-    constructor(name: string, sql: string) {
+    constructor(name: string, sql: string, fields?: Array<Field>) {
         this.name = name;
         this.sql = sql;
+        this.fields = fields;
     }
 }
 

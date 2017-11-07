@@ -11,6 +11,8 @@ export enum OrderMode {
     ASC, DESC
 }
 
+export const modes = ['LEFT', 'RIGHT', 'INNER', 'FULL', 'CROSS', 'NATURAL']
+
 export enum JoinMode {
     LEFT, RIGHT, INNER, FULL, CROSS, NATURAL
     // TODO OUTER, SEMI

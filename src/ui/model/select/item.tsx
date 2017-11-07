@@ -18,7 +18,7 @@ import { DataModel } from '../../../common/data'
 import { option as optionAction } from '../../../common/actions'
 import { graphic as graphicAction } from '../../../common/actions'
 import { Option, OptionType, OptionTarget, OptionPosition } from '../../../common/data/option'
-import { JoinTrigger } from '../option/trigger'
+import { JoinTrigger, SelectTrigger } from '../option/trigger' 
 
 import SelectPackage from './package'
 
@@ -55,7 +55,11 @@ class SelectItem extends React.PureComponent<SelectItemProps, SelectItemState> {
         const { option } = actions;
         let action: optionAction.$actions = option;
         const key = node.get('key');
-        action.SUBMIT(key, new Option.Table());
+        const selectKey = key + ".SELECT";
+        const data: DataModel.Data.Select = node.get('data');
+        // TODO
+        const optionSelect = new Option.Select();
+        action.SUBMIT(selectKey, optionSelect);
     }
 
     componentWillUnmount() {
@@ -63,18 +67,8 @@ class SelectItem extends React.PureComponent<SelectItemProps, SelectItemState> {
         const { option } = actions;
         let action: optionAction.$actions = option;
         const key = node.get('key');
-        action.REMOVE(key);
-    }
-
-    select(event) {
-        const { actions, node } = this.props;
-        const { option } = actions;
-        if (option && node && event && event.nativeEvent) {
-            let action: optionAction.$actions = option;
-            const target = new OptionTarget();
-            target.target = node.get('data');
-            action.PUSH(node.get('name'), OptionType.SELECT, target, new OptionPosition(event.nativeEvent.clientX, event.nativeEvent.clientY))
-        }
+        const selectKey = key + ".SELECT";
+        action.REMOVE(selectKey);
     }
 
     over(event) {
@@ -126,7 +120,8 @@ class SelectItem extends React.PureComponent<SelectItemProps, SelectItemState> {
                         targetOrigin={{ horizontal: 'left', vertical: 'top' }}
                         touchTapCloseDelay={10}
                     >
-                        <MenuItem primaryText={cn.option_setting} onTouchTap={this.select.bind(this)} />
+                        <SelectTrigger primaryText={cn.option_setting} node={node} actions={this.props.actions} />
+                        {/* <MenuItem primaryText={cn.option_setting} onTouchTap={this.select.bind(this)} /> */}
                         <MenuItem primaryText={cn.option_delete} onTouchTap={this.delete.bind(this)} />
                     </IconMenu>
                 </div>

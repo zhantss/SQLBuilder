@@ -1,6 +1,7 @@
 import * as immutable from 'immutable'
 import * as uuid from 'uuid'
 import { DataModel } from '../data'
+import { Field } from './../data/model/data';
 import DEV from '../development'
 
 /**
@@ -48,19 +49,19 @@ if (DEV) {
         {
             identity: uuid.v4(),
             name: "客户个人信息",
-            data : new DataModel.Data.Model("客户个人信息", "SELECT * FROM CUSTOM_INFO"),
+            data : new DataModel.Data.Model("客户个人信息", "SELECT NAME, AGE, SEX, AREA FROM CUSTOM_INFO"),
             parent: "1.1",
         },
         {
             identity: uuid.v4(),
             name: "客户详细信息",
-            data : new DataModel.Data.Model("客户详细信息", "SELECT * FROM CUSTOM_DETAIL"),
+            data : new DataModel.Data.Model("客户详细信息", "SELECT NAME, BUSINESS, PROFESSION FROM CUSTOM_DETAIL"),
             parent: "1.1"
         },
         {
             identity: uuid.v4(),
             name: "客户关联关系",
-            data : new DataModel.Data.Model("客户关联关系", "SELECT * FROM CUSTOM_RELATION"),
+            data : new DataModel.Data.Model("客户关联关系", "SELECT * FROM CUSTOM_RELATION", [new Field("NAME"), new Field("TARGET"), new Field("INFO"), new Field("RELATION")]),
             parent: "1.1"
         },
         {

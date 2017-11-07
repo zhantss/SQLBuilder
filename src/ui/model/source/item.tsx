@@ -18,7 +18,7 @@ import { DataModel } from '../../../common/data'
 import { option as optionAction } from '../../../common/actions'
 import { graphic as graphicAction } from '../../../common/actions'
 import { Option, OptionType, OptionTarget, OptionPosition } from '../../../common/data/option'
-import { JoinTrigger } from '../option/trigger'
+import { JoinTrigger, SourceTrigger } from '../option/trigger' 
 
 interface SourceItemProps {
     connectDragSource?: ConnectDragSource
@@ -52,7 +52,10 @@ class SourceItem extends React.PureComponent<SourceItemProps, SourceItemState> {
         const { option } = actions;
         let action: optionAction.$actions = option;
         const key = node.get('key');
-        action.SUBMIT(key, new Option.Table());
+        const sourceKey = key + ".SOURCE";
+        const data: DataModel.Data.Source = node.get('data');
+        const optionSource = Option.tableConstructorByDataSource(data);
+        action.SUBMIT(sourceKey, optionSource);
     }
 
     componentWillUnmount() {
@@ -60,18 +63,8 @@ class SourceItem extends React.PureComponent<SourceItemProps, SourceItemState> {
         const { option } = actions;
         let action: optionAction.$actions = option;
         const key = node.get('key');
-        action.REMOVE(key);
-    }
-
-    source(event) {
-        const { actions, node } = this.props;
-        const { option } = actions;
-        if (option && node && event && event.nativeEvent) {
-            let action: optionAction.$actions = option;
-            const target = new OptionTarget();
-            target.target = node.get('data');
-            action.PUSH(node.get('name'), OptionType.SOURCE, target, new OptionPosition(event.nativeEvent.clientX, event.nativeEvent.clientY))
-        }
+        const sourceKey = key + ".SOURCE";
+        action.REMOVE(sourceKey);
     }
 
     over(event) {
@@ -112,7 +105,8 @@ class SourceItem extends React.PureComponent<SourceItemProps, SourceItemState> {
                         targetOrigin={{ horizontal: 'left', vertical: 'top' }}
                         touchTapCloseDelay={10}
                     >
-                        <MenuItem primaryText={cn.option_setting} onTouchTap={this.source.bind(this)} />
+                        <SourceTrigger primaryText={cn.option_setting} node={node} actions={this.props.actions} />
+                        {/* <MenuItem primaryText={cn.option_setting} onTouchTap={this.source.bind(this)} /> */}
                         <MenuItem primaryText={cn.option_delete} onTouchTap={this.delete.bind(this)} />
                     </IconMenu>
                 </div>

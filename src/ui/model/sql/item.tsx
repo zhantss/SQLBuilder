@@ -53,7 +53,8 @@ class SQLItem extends React.PureComponent<SQLItemProps, SQLItemState> {
         let action: optionAction.$actions = option;
         const key = node.get('key');
         const modelKey = key + ".SQLMODEL";
-        const optionSQLModel = new Option.Table();
+        const data: DataModel.Data.Model = node.get('data');
+        const optionSQLModel = Option.tableConstructorByDataModel(data);
         action.SUBMIT(modelKey, optionSQLModel);
     }
 
@@ -64,18 +65,6 @@ class SQLItem extends React.PureComponent<SQLItemProps, SQLItemState> {
         const key = node.get('key');
         const modelKey = key + ".SQLMODEL";
         action.REMOVE(modelKey);
-    }
-
-    model(event) {
-        event.preventDefault();
-        const { actions, node } = this.props;
-        const { option } = actions;
-        if (option && node && event && event.nativeEvent) {
-            let action: optionAction.$actions = option;
-            const target = new OptionTarget();
-            target.target = node.get('data');
-            action.PUSH(node.get('name'), OptionType.SQLMODEL, target, new OptionPosition(event.nativeEvent.clientX, event.nativeEvent.clientY))
-        }
     }
 
     over(event) {
@@ -99,7 +88,7 @@ class SQLItem extends React.PureComponent<SQLItemProps, SQLItemState> {
         const { actions, node } = this.props;
         const { graphic } = actions;
         let action: graphicAction.$actions = graphic;
-        action.DELETE(node.get('key'));
+        action.DELETE(node.get('key') + ".SQLMODEL");
     }
 
     render() {

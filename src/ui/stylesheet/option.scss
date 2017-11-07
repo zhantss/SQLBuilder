@@ -12,7 +12,7 @@
     .option-panel {
         position: absolute;
         min-height: 180px;
-        min-width: 480px;
+        min-width: 400px;
         z-index: 1001;
         border: 1px solid #e6e6e6;
         box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 10px, rgba(0, 0, 0, 0.23) 0px 3px 10px;
@@ -60,6 +60,34 @@
                         box-sizing: border-box !important;
                         box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 6px, rgba(0, 0, 0, 0.12) 0px 1px 4px !important;
                     }
+                }
+            }
+        }
+        .option-table {
+            .option-table-toolbar {
+                height: 58px;
+                background: #fafafa;
+                border-bottom: 1px solid #ededed;
+            }
+            .option-table-select {
+                padding: 5px 0;
+                max-width: 480px;
+                max-height: 400px;
+                overflow-y: auto;
+            }
+            .option-table-bottom-tool {
+                height: 58px;
+                background: #fafafa;
+                border-bottom: 1px solid #ededed;
+                button {
+                    margin: 12px !important;
+                    height: 36px !important;
+                    min-width: 60px !important;
+                    padding: 0 !important;
+                    border-radius: 2px !important;
+                    background-color: rgb(255, 255, 255) !important;
+                    box-sizing: border-box !important;
+                    box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 6px, rgba(0, 0, 0, 0.12) 0px 1px 4px !important;
                 }
             }
         }

@@ -2,14 +2,14 @@ import * as React from 'react'
 import * as classnames from 'classnames'
 import * as uuid from 'uuid'
 
-import MenuItem from 'material-ui/MenuItem';
+import MenuItem from 'material-ui/MenuItem'
 import { MenuItemProps } from 'material-ui'
 
 import { cn } from '../../../text'
 import { connect2 } from '../../../../common/connect'
 
 import { option as optionAction } from '../../../../common/actions'
-import { Option, OptionType, OptionTarget, OptionPosition } from '../../../../common/data/option'
+import { Option, OptionType, OptionTarget, OptionPosition, OptionItem } from '../../../../common/data/option'
 
 interface SQLModelTriggerProps extends MenuItemProps {
     node?: any
@@ -47,7 +47,7 @@ class SQLModelTrigger extends React.PureComponent<SQLModelTriggerProps> {
         if (option && node && event && event.nativeEvent) {
             let action: optionAction.$actions = option;
             const target = new OptionTarget();
-            target.target = node.get('data');
+            target.target = new OptionItem(node.get('key') + ".SQLMODEL",  node.get('data'));
             action.PUSH(node.get('name'), OptionType.SQLMODEL, target, new OptionPosition(event.nativeEvent.clientX, event.nativeEvent.clientY))
         }
     }
