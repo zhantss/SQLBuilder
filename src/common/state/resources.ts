@@ -9,12 +9,6 @@ import DEV from '../development'
  */
 let resources = immutable.fromJS({
 
-    /** 数据模型 */
-    model: [],
-
-    /** 数据源 */
-    original: [],
-
 });
 
 if (DEV) {
@@ -79,13 +73,13 @@ if (DEV) {
         {
             identity: uuid.v4(),
             name: "客户贷款7月统计",
-            data : new DataModel.Data.Model("客户贷款7月统计", "SELECT I.ID, I.NAME, SUM(L.AMOUNT) FROM CUSTOM_INFO I LEFT JOIN CUSTOM_LOAN L ON I.ID = L.CUSTOM_ID GROUP BY I.ID WHERE L.AMOUNT IS NOT NULL AND L.MONTH = 7"),
+            data : new DataModel.Data.Model("客户贷款7月统计", "SELECT I.ID, I.NAME, SUM(L.AMOUNT) '贷款额' FROM CUSTOM_INFO I LEFT JOIN CUSTOM_LOAN L ON I.ID = L.CUSTOM_ID WHERE L.AMOUNT IS NOT NULL AND L.MONTH = 7 GROUP BY I.ID"),
             parent: "1.3"
         },
         {
             identity: uuid.v4(),
             name: "客户贷款9月统计",
-            data : new DataModel.Data.Model("客户贷款9月统计", "SELECT I.ID, I.NAME, SUM(L.AMOUNT) FROM CUSTOM_INFO I LEFT JOIN CUSTOM_LOAN L ON I.ID = L.CUSTOM_ID GROUP BY I.ID WHERE L.AMOUNT IS NOT NULL AND L.MONTH = 9"),
+            data : new DataModel.Data.Model("客户贷款9月统计", "SELECT I.ID, I.NAME, '测试' || '结果' as GG, SUM(L.AMOUNT) AS [贷款额] FROM CUSTOM_INFO I LEFT JOIN CUSTOM_LOAN L ON I.ID = L.CUSTOM_ID WHERE L.AMOUNT IS NOT NULL AND L.MONTH = 9 GROUP BY I.ID"),
             parent: "1.3"
         }
     ]

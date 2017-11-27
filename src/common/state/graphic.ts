@@ -7,8 +7,8 @@ import DEV from '../development'
  */
 let graphic = immutable.fromJS({
 
-    key : null,
-
+    // key : null,
+    entrances: [],
     graphic : {}
 
 });

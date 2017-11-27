@@ -83,16 +83,15 @@ export class Parentheses implements Expression {
     }
 }
 
-export class AtomExpression {
+export class AtomExpression implements Expression {
 
 }
 
-export class Column extends AtomExpression {
+export class Column implements AtomExpression {
     table?: string
     column: string
 
     constructor(column: string, table?: string) {
-        super();
         this.column = column;
         this.table = table;
     }
@@ -114,11 +113,10 @@ export class AllColumn extends Column {
     }
 }
 
-export class Value extends AtomExpression {
+export class Value implements AtomExpression {
     value: string
 
     constructor(value: string) {
-        super();
         this.value = value;
     }
 
@@ -127,7 +125,7 @@ export class Value extends AtomExpression {
     }
 }
 
-export class Function extends AtomExpression {
+export class Function implements AtomExpression {
     function: string
     props?: Array<string>
 }

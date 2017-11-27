@@ -31,6 +31,8 @@ const graphic = create(init, {
             const orginalParentKey = currentNode.get('parent');
             const topKey = currentNode.get('top');
             const currentPath = currentNode.get('path');
+
+            // Original Parent Node
             if (orginalParentKey) {
                 if (orginalParentKey == action.parentKey) {
                     return state;
@@ -52,6 +54,16 @@ const graphic = create(init, {
 
             }
 
+            // Drag entrance item to children item
+            const entrances = state.get('entrances');
+            if (entrances) {
+                let index = entrances.indexOf(currentNode.get('key'));
+                if (index >= 0) {
+                    state = state.setIn(['entrances'], entrances.delete(index));
+                }
+            }
+
+            // Sub Select & Set Operators
             if (topKey) {
                 if (action.parentKey) {
                     currentNode = currentNode.set('top', null);
@@ -71,6 +83,7 @@ const graphic = create(init, {
                 }
             }
 
+            // Parent Node 
             if (action.parentKey) {
                 currentNode = currentNode.set('parent', action.parentKey);
                 const parentNode = state.getIn(['graphic', action.parentKey]);
@@ -94,12 +107,26 @@ const graphic = create(init, {
                     return state;
                 }
             } else {
-                if (currentPath != null && currentPath.size > 0) {
-                    return state.setIn(['graphic', currentNode.get('key')], currentNode);
+                // Multi Selection
+                const entrances: immutable.List<string> = state.get('entrances');
+                if(entrances) {
+                    if(entrances.indexOf(currentNode.get('key')) == -1) {
+                        state = state.setIn(['entrances'], entrances.push(currentNode.get('key')));
+                    }
                 } else {
-                    currentNode = currentNode.set('path', immutable.fromJS([currentNode.get('key')]));
-                    return state.setIn(['graphic', currentNode.get('key')], currentNode);
+                    state = state.setIn(['entrances'], immutable.fromJS([currentNode.get('key')]));
                 }
+
+                currentNode = currentNode.set('parent', null).set('path', immutable.fromJS([currentNode.get('key')]));
+                return state.setIn(['graphic', currentNode.get('key')], currentNode);
+                
+                // if (currentPath != null && currentPath.size > 0) {
+                //     currentNode = currentNode.set('path', immutable.fromJS([currentNode.get('key')]));
+                //     return state.setIn(['graphic', currentNode.get('key')], currentNode);
+                // } else {
+                //     currentNode = currentNode.set('path', immutable.fromJS([currentNode.get('key')]));
+                //     return state.setIn(['graphic', currentNode.get('key')], currentNode);
+                // }
             }
         }
         return state;

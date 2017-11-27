@@ -39,18 +39,19 @@ class ModelArea extends React.PureComponent<ModelAreaProps, ModelAreaState> {
 
     itemPlus(node: any) {
         const { graphic, actions } = this.props;
-        const first = graphic.get('key');
+        // const first = graphic.get('key');
         if (node && node.get('key')) {
             try {
-                if (!first) {
-                    actions.FIRST(node.get('key'));
-                    actions.UPDATE(first, node);
-                } else {
-                    actions.UPDATE(this.state.last, node);
-                }
-                this.setState({
-                    last: node.get('key')
-                })
+                // if (!first) {
+                //     actions.FIRST(node.get('key'));
+                //     actions.UPDATE(first, node);
+                // } else {
+                //     actions.UPDATE(this.state.last, node);
+                // }
+                // this.setState({
+                //     last: node.get('key')
+                // })
+                actions.UPDATE(null, node);
             } catch (error) {
                 // TODO 
                 console.log(error);
@@ -60,12 +61,17 @@ class ModelArea extends React.PureComponent<ModelAreaProps, ModelAreaState> {
 
     render() {
         const { connectDropTarget, isOver, canDrop, graphic } = this.props;
-        const key = graphic.get('key');
+        // const key = graphic.get('key');
         // const box_graphic = graphic.get('graphic');
-        const node = graphic.getIn(['graphic', key]);
+        // const node = graphic.getIn(['graphic', key]);
+        const entrances: immutable.List<string> = graphic.get('entrances');
         return connectDropTarget(
             <div className={classnames('model-area', { over: isOver }, { can: canDrop })}>
-                <ModelBox {...{ node: node }} />
+                {entrances ? entrances.map((value) => {
+                    const node = graphic.getIn(['graphic', value]);
+                    return node ? <ModelBox key={node.get('key')} {...{ node: node }} /> : null
+                }) : null}
+                {/* <ModelBox {...{ node: node }} /> */}
             </div>
         );
     }
@@ -97,7 +103,12 @@ export default connect(
         // const c = component.getWrappedInstance();
 
         const item: any = monitor.getItem();
-        if (item && item.type && item.powerType == null && item.type != InnerType.RESOURCES) {
+        if (item && item.type && item.powerType == null 
+            && item.type != InnerType.RESOURCES 
+            && item.type != InnerType.SQLMODEL 
+            && item.type != InnerType.SOURCE 
+            && item.type != InnerType.SETOP 
+            && item.type != InnerType.SELECT) {
             return;
         }
 

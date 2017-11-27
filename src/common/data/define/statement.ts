@@ -1,6 +1,7 @@
-import { Expression, Column } from './expression';
+import { Expression, Column, AtomExpression } from './expression';
 import { FromItem } from './fromItem'
-import { Join, Order } from './extra'
+import { Join } from './set'
+import { Order, SelectItem } from './extra'
 
 
 export interface Statement {
@@ -8,7 +9,7 @@ export interface Statement {
 }
 
 export class Select implements Statement {
-    items: Array<Expression>
+    items: Array<SelectItem>
     fromItem: FromItem
     joins: Array<Join>
     where: Expression

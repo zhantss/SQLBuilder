@@ -11,10 +11,10 @@ module.exports = {
     devtool: 'source-map',
     entry: {
         polyfill: ['babel-polyfill'],
-        vendor: ['react', 'react-dom', 'redux', 'react-redux', 'react-router', 'react-router-dom', 'react-router-redux'],
-        plugin: ['redux-saga', 'redux-logger', 'immutable', 'redux-immutable'],
-        ui: ['react-tap-event-plugin', 'material-ui'],
-        tool: ['axios', 'bowser', 'classnames', 'uuid', 'sql-parser'],
+        vendor: ['react', 'react-dom', 'redux', 'react-redux', 'react-router', 'react-router-dom', 'react-router-redux', 'react-transition-group'],
+        plugin: ['redux-saga', 'redux-logger', 'immutable', 'redux-immutable', 'react-dnd', 'react-dnd-html5-backend'],
+        ui: ['react-tap-event-plugin', 'material-ui', 'material-design-icons', 'material-ui-scrollable-tabs', 'react-virtualized', 'react-sortable-hoc'],
+        tool: ['axios', 'bowser', 'moment', 'classnames', 'uuid', 'alasql'],
         sqlbuilder: ['./src/index.tsx', 'webpack-hot-middleware/client?path=/__webpack_hmr&timeout=20000']
     },
     output: {
@@ -60,7 +60,7 @@ module.exports = {
                 }, 'ts-loader']
             },
             {
-                test: /\.scss$/,
+                test: /\.s?css$/,
                 loaders: ['style-loader', 'css-loader', {
                     loader: 'postcss-loader',
                     options: {

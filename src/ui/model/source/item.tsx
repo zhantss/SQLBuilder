@@ -18,16 +18,17 @@ import { DataModel } from '../../../common/data'
 import { option as optionAction } from '../../../common/actions'
 import { graphic as graphicAction } from '../../../common/actions'
 import { Option, OptionType, OptionTarget, OptionPosition } from '../../../common/data/option'
-import { JoinTrigger, SourceTrigger } from '../option/trigger' 
+import { JoinTrigger, SourceTrigger, SelectTrigger } from '../option/trigger' 
 
 interface SourceItemProps {
     connectDragSource?: ConnectDragSource
     connectDragPreview?: ConnectDragPreview
     isDragging?: boolean
-    node?: any
     isOver?: boolean
     canDrop?: boolean
+    node?: any
     actions?: any
+    isSelect?: boolean
 }
 
 interface SourceItemState {
@@ -92,7 +93,7 @@ class SourceItem extends React.PureComponent<SourceItemProps, SourceItemState> {
     }
 
     render() {
-        const { connectDragSource, isDragging, node, isOver, canDrop } = this.props;
+        const { connectDragSource, isDragging, node, isOver, canDrop, isSelect } = this.props;
 
         return connectDragSource(
             <div className={classnames('model-item', 'model-source', { over: isOver }, { can: canDrop })} onMouseOver={this.over.bind(this)} onMouseLeave={this.leave.bind(this)}>
@@ -105,7 +106,7 @@ class SourceItem extends React.PureComponent<SourceItemProps, SourceItemState> {
                         targetOrigin={{ horizontal: 'left', vertical: 'top' }}
                         touchTapCloseDelay={10}
                     >
-                        <SourceTrigger primaryText={cn.option_setting} node={node} actions={this.props.actions} />
+                        {isSelect ? <SelectTrigger primaryText={cn.option_setting} node={node} actions={this.props.actions} /> : null}
                         {/* <MenuItem primaryText={cn.option_setting} onTouchTap={this.source.bind(this)} /> */}
                         <MenuItem primaryText={cn.option_delete} onTouchTap={this.delete.bind(this)} />
                     </IconMenu>

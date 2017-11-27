@@ -91,6 +91,32 @@
                 }
             }
         }
+        .option-select {
+            .option-select-toolbar {
+                height: 58px;
+                background: #fafafa;
+                border-bottom: 1px solid #ededed;
+            }
+            .option-select-tabs {
+                max-width: 600px;
+                overflow-y: auto;
+            }
+            .option-select-bottom-tool {
+                height: 58px;
+                background: #fafafa;
+                border-bottom: 1px solid #ededed;
+                button {
+                    margin: 12px !important;
+                    height: 36px !important;
+                    min-width: 60px !important;
+                    padding: 0 !important;
+                    border-radius: 2px !important;
+                    background-color: rgb(255, 255, 255) !important;
+                    box-sizing: border-box !important;
+                    box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 6px, rgba(0, 0, 0, 0.12) 0px 1px 4px !important;
+                }
+            }
+        }
     }
 }
 

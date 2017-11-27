@@ -7,7 +7,7 @@ import { connect2 } from '../../../../common/connect'
 
 import { option as optionAction } from '../../../../common/actions'
 import { Option, OptionType, OptionTarget, OptionItem, OptionPosition } from '../../../../common/data/option'
-import { JoinMode } from '../../../../common/data/define/extra';
+import { JoinMode } from '../../../../common/data/define';
 
 interface JoinTriggerProps {
     node?: any

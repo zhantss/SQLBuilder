@@ -87,27 +87,30 @@ class ModelBox extends React.PureComponent<ModelBoxProps, ModelBoxState> {
         const { connectDropTarget, isOver, isOverCurrent, node, graphic } = this.props;
         const { canDrop } = this.state;
         let item = null;
-        let nodes = null;
         if (node) {
             const data = node.get('data');
+            const path = node.get('path');
+            const root = path && path.size == 1;
+            const nodes = node.get('nodes');
+            const innermost = nodes == null || nodes.size <= 0;
+            
             if (data instanceof DataModel.Data.Select) {
-                item = <SelectItem node={node} isOver={isOverCurrent} canDrop={canDrop} graphic={graphic.get('graphic')}/>
+                item = <SelectItem node={node} isOver={isOverCurrent} canDrop={canDrop} graphic={graphic.get('graphic')} isSelect={root || !innermost} />
             } else if (data instanceof DataModel.Data.SetOperators) {
 
             } else if (data instanceof DataModel.Data.Source) {
-                item = <SourceItem node={node} isOver={isOverCurrent} canDrop={canDrop} />
+                item = <SourceItem node={node} isOver={isOverCurrent} canDrop={canDrop} isSelect={root || !innermost} />
             } else if (data instanceof DataModel.Data.Model) {
-                item = <SQLItem node={node} isOver={isOverCurrent} canDrop={canDrop} />
+                item = <SQLItem node={node} isOver={isOverCurrent} canDrop={canDrop} isSelect={root || !innermost} />
             } else {
-                item = <ModelItem node={node} isOver={isOverCurrent} canDrop={canDrop} />;
+                item = <ModelItem node={node} isOver={isOverCurrent} canDrop={canDrop} isSelect={root || !innermost} />;
             }
-            nodes = node.get('nodes');
         }
 
         return connectDropTarget(
             <div className={classnames('model-box')}>
-                {item}
-                <ModelWrap {...{ nodes: nodes }} />
+                {node ? item : null}
+                {node ? <ModelWrap {...{ nodes: node.get('nodes') }} /> : null}
             </div>
         );
     }

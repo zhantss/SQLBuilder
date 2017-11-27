@@ -1,9 +1,10 @@
-import { JoinMode, SetOperationType } from '../define/extra'
+import { JoinMode, SetOperationType } from '../define/set'
 import { Expression, Column, Value, Function, AtomExpression } from '../define/expression'
 import { DataModel } from '../'
 import { SQLParser } from '../utils'
 import { Translate } from './translate'
 import { SelectableExpression } from './selectable'
+import { TraceSelectItem } from './traceability'
 
 export interface Option {
 
@@ -32,15 +33,16 @@ export class Table implements Option {
 }
 
 export class Select implements Option {
-    items?: Array<AtomExpression>
+    key: string
+    items?: Array<TraceSelectItem>
     where?: Array<Translate>
-    groupby?: Array<AtomExpression>
+    groupby?: Array<Column>
     having?: Array<Translate>
     order?: Array<Column>
     // TODO DISTINCT/EXCEPT/INTERSECT/EXPLAIN
     
-    constructor() {
-        
+    constructor(key: string) {
+        this.key = key;
     }
 }
 

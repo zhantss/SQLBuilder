@@ -6,6 +6,7 @@ import { connect2 } from '../../../../common/connect'
 import { OptionType, OptionTarget } from '../../../../common/data/option'
 import JoinContent from './join'
 import TableContent from './table'
+import SelectContent from './select'
 
 interface OptionContentProps {
     graphic?: any,
@@ -35,7 +36,7 @@ class OptionContent extends React.PureComponent<OptionContentProps> {
             case OptionType.SELECT: {
                 // TODO
                 // SELECT Alias/SELECT ITEMs & Alias/Where/Group/Order
-                return null;
+                return <SelectContent />;
             }
             case OptionType.JOIN: {
                 // TODO

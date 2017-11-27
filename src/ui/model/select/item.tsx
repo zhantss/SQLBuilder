@@ -26,11 +26,12 @@ interface SelectItemProps {
     connectDragSource?: ConnectDragSource
     connectDragPreview?: ConnectDragPreview
     isDragging?: boolean
-    node?: any
     isOver?: boolean
     canDrop?: boolean
+    node?: any
     graphic?: immutable.Map<string, any>
     actions?: any
+    isSelect?: boolean
 }
 
 interface SelectItemState {
@@ -58,7 +59,7 @@ class SelectItem extends React.PureComponent<SelectItemProps, SelectItemState> {
         const selectKey = key + ".SELECT";
         const data: DataModel.Data.Select = node.get('data');
         // TODO
-        const optionSelect = new Option.Select();
+        const optionSelect = new Option.Select(selectKey);
         action.SUBMIT(selectKey, optionSelect);
     }
 

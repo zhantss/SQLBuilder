@@ -21,3 +21,10 @@ export const option_join_on = "切换使用ON"
 
 export const option_table_alias = "别名"
 export const option_table_field_select = "字段选择"
+
+export const option_select_tab_select_items = "查询字段"
+export const option_select_tab_where = "过滤条件"
+export const option_select_tab_having = "筛选条件"
+export const option_select_tab_groupby = "分组字段"
+export const option_select_tab_orderby = "排序列表"
+export const option_select_tab_select_items_select = "选择查询字段"

@@ -5,7 +5,7 @@ import Generator from './generator'
 import { Data } from '../model'
 import { Option } from '../option'
 import { translateCombine } from '../option/translate'
-import { JoinMode } from '../define/extra'
+import { JoinMode } from '../define/set'
 import { Expression, Column, AllColumn } from './../define/expression';
 
 class Select {

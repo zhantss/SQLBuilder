@@ -1,5 +1,6 @@
 import { parse, yy } from 'alasql'
 import { Field } from './../model/data'
+import { Function } from '../define/expression';
 
 export function getSelectItems(sql: string): Array<Field> {
     try {
@@ -11,7 +12,18 @@ export function getSelectItems(sql: string): Array<Field> {
             if (statement.columns) {
                 statement.columns.forEach(c => {
                     // TODO Type, Table, DB
-                    items.push(new Field(c.alias ? c.alias : c.columnid));
+                    let alias: string = c.as ? c.as.toString() : null;
+                    if (alias && alias.charAt(0) == "'" && alias.charAt(alias.length - 1) == "'") { alias = alias.substr(1, alias.length - 2)}
+
+                    if (c.columnid) {       // column
+                        items.push(new Field(c.columnid, alias));
+                    } else if (c.aggregatorid) {        // Aggregate Functions
+                        items.push(new Field(c.expression && c.expression.columnid ? c.aggregatorid + "(" + c.expression.columnid + ")" : c.toString(), alias));
+                    } else {
+                        items.push(new Field(c.toString(), alias));
+                    }
+                    // TODO custom value
+                    // TODO case when
                 })
             }
             return items;

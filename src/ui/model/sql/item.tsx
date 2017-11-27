@@ -18,16 +18,17 @@ import { DataModel } from '../../../common/data'
 import { option as optionAction } from '../../../common/actions'
 import { graphic as graphicAction } from '../../../common/actions'
 import { Option, OptionType, OptionTarget, OptionPosition } from '../../../common/data/option'
-import { JoinTrigger, SQLModelTrigger } from '../option/trigger'
+import { JoinTrigger, SQLModelTrigger, SelectTrigger } from '../option/trigger'
 
 interface SQLItemProps {
     connectDragSource?: ConnectDragSource
     connectDragPreview?: ConnectDragPreview
     isDragging?: boolean
-    node?: any
     isOver?: boolean
     canDrop?: boolean
+    node?: any
     actions?: any
+    isSelect?: boolean
 }
 
 interface SQLItemState {
@@ -52,10 +53,11 @@ class SQLItem extends React.PureComponent<SQLItemProps, SQLItemState> {
         const { option } = actions;
         let action: optionAction.$actions = option;
         const key = node.get('key');
-        const modelKey = key + ".SQLMODEL";
+        const selectKey = key + ".SELECT";
         const data: DataModel.Data.Model = node.get('data');
-        const optionSQLModel = Option.tableConstructorByDataModel(data);
-        action.SUBMIT(modelKey, optionSQLModel);
+        // const optionSQLModel = Option.tableConstructorByDataModel(data);
+        const select = new Option.Select(selectKey);
+        action.SUBMIT(selectKey, select);
     }
 
     componentWillUnmount() {
@@ -63,8 +65,8 @@ class SQLItem extends React.PureComponent<SQLItemProps, SQLItemState> {
         const { option } = actions;
         let action: optionAction.$actions = option;
         const key = node.get('key');
-        const modelKey = key + ".SQLMODEL";
-        action.REMOVE(modelKey);
+        const selectKey = key + ".SELECT";
+        action.REMOVE(selectKey);
     }
 
     over(event) {
@@ -88,12 +90,11 @@ class SQLItem extends React.PureComponent<SQLItemProps, SQLItemState> {
         const { actions, node } = this.props;
         const { graphic } = actions;
         let action: graphicAction.$actions = graphic;
-        action.DELETE(node.get('key') + ".SQLMODEL");
+        action.DELETE(node.get('key'));
     }
 
     render() {
-        const { connectDragSource, isDragging, node, isOver, canDrop } = this.props;
-        
+        const { connectDragSource, isDragging, node, isOver, canDrop, isSelect } = this.props;
         return connectDragSource(
             <div className={classnames('model-item', 'model-sql', { over: isOver }, { can: canDrop })} onMouseOver={this.over.bind(this)} onMouseLeave={this.leave.bind(this)}>
                 <div className={classnames('item-package', node.get('relation'))} data-key={node.get('key')}>{node.get('name')}</div>
@@ -105,7 +106,7 @@ class SQLItem extends React.PureComponent<SQLItemProps, SQLItemState> {
                         targetOrigin={{ horizontal: 'left', vertical: 'top' }}
                         touchTapCloseDelay={10}
                     >
-                        <SQLModelTrigger primaryText={cn.option_setting} node={node} actions={this.props.actions} />
+                        {isSelect ? <SelectTrigger primaryText={cn.option_setting} node={node} actions={this.props.actions} />　: null}
                         {/* <MenuItem primaryText={cn.option_setting} onTouchTap={this.model.bind(this)} /> */}
                         <MenuItem primaryText={cn.option_delete} onTouchTap={this.delete.bind(this)} />
                     </IconMenu>

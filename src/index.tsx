@@ -17,6 +17,9 @@ declare module 'react' {
 import history from './common/history'
 import store from './common/store'
 
+// react-virtualized
+import 'react-virtualized/styles.css'
+
 import './style/icon.scss'
 import * as ui from './ui'
 

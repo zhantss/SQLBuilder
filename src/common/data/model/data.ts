@@ -1,3 +1,5 @@
+import { getSelectItems } from '../utils/sqlparser'
+
 export enum DataType {
     SOURCE, MODEL, SELECT, SETOPERATORS
 }
@@ -8,11 +10,13 @@ export interface Data {
 
 export class Field {
     name: string
+    alias?: string
     type?: string   //TODO
 
-    constructor(name: string, type?: string) {
+    constructor(name: string, alias?: string, type?: string) {
         this.name = name;
         this.type = type;
+        this.alias = alias;
     }
 }
 
@@ -44,6 +48,9 @@ export class Model implements Data {
         this.name = name;
         this.sql = sql;
         this.fields = fields;
+        if (this.fields == null && this.sql) {
+            this.fields = getSelectItems(this.sql)
+        }
     }
 }
 
