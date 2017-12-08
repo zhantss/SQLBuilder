@@ -5,7 +5,7 @@ import { Route } from 'react-router'
 import { ConnectedRouter } from 'react-router-redux'
 
 // TODO onTouchTap event error info fix
-import { TouchTapEventHandler } from 'material-ui' 
+import { TouchTapEventHandler } from 'material-ui'
 import * as injectTapEventPlugin from 'react-tap-event-plugin';
 injectTapEventPlugin();
 declare module 'react' {
@@ -34,7 +34,7 @@ ReactDOM.render(
 
     <Provider store={store}>
         <ConnectedRouter history={history}>
-            <Route exact path="/" component={ui.launcher}/>
+            <Route exact path="/" component={ui.launcher} />
         </ConnectedRouter>
     </Provider>
 

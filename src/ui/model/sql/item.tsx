@@ -106,7 +106,7 @@ class SQLItem extends React.PureComponent<SQLItemProps, SQLItemState> {
                         targetOrigin={{ horizontal: 'left', vertical: 'top' }}
                         touchTapCloseDelay={10}
                     >
-                        {isSelect ? <SelectTrigger primaryText={cn.option_setting} node={node} actions={this.props.actions} />　: null}
+                        {<SelectTrigger primaryText={cn.option_setting} node={node} actions={this.props.actions} />}
                         {/* <MenuItem primaryText={cn.option_setting} onTouchTap={this.model.bind(this)} /> */}
                         <MenuItem primaryText={cn.option_delete} onTouchTap={this.delete.bind(this)} />
                     </IconMenu>

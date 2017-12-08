@@ -5,6 +5,7 @@ import { SQLParser } from '../utils'
 import { Translate } from './translate'
 import { SelectableExpression } from './selectable'
 import { TraceSelectItem } from './traceability'
+import { SelectItem } from '../define/extra';
 
 export interface Option {
 
@@ -34,7 +35,7 @@ export class Table implements Option {
 
 export class Select implements Option {
     key: string
-    items?: Array<TraceSelectItem>
+    items?: Array<SelectItem>
     where?: Array<Translate>
     groupby?: Array<Column>
     having?: Array<Translate>

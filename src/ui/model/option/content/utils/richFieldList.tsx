@@ -1,69 +1,206 @@
 import * as React from 'react'
 import * as classnames from 'classnames'
 import * as uuid from 'uuid'
+import * as immutable from 'immutable'
 
 import AutoComplete from 'material-ui/AutoComplete'
 import IconButton from 'material-ui/IconButton'
 import MenuItem from 'material-ui/MenuItem'
+import TextField from 'material-ui/TextField'
 
-import { AutoSizer as RV_AutoSizer, Table as RV_Table, Column as RV_Column, SortDirection as ev_SortDirection, SortIndicator as RV_SortIndicator } from 'react-virtualized'
+import { AutoSizer as RV_AutoSizer, Table as RV_Table, Column as RV_Column, SortDirection as ev_SortDirection, SortIndicator as RV_SortIndicator, SortDirection as RV_SortDirection } from 'react-virtualized'
 
 import { SimpleIcon as Icon } from '../../../../icon'
-import Select from './select'
 import Input from './input'
 
 import { cn } from '../../../../text'
 import { connect2 } from '../../../../../common/connect'
 import { DataModel, DataDefine } from '../../../../../common/data'
+import { GraphicParser } from '../../../../../common/data/utils'
 import { Expression, AtomExpression, Value, Column, Function } from '../../../../../common/data/define/expression'
+import { Alias } from '../../../../../common/data/define/extra'
 import { Option } from '../../../../../common/data/option'
-import { Translate, AtomOption, ConnectAtomOption, GroupParentheses } from '../../../../../common/data/option/translate'
-import { TraceSelectItem } from '../../../../../common/data/option/traceability'
+import { Translate, ConnectAtomOption, GroupParentheses } from '../../../../../common/data/option/translate'
+import { TraceSelectItem, TraceField } from '../../../../../common/data/option/traceability'
 
 interface RichFieldListProps {
-    items: Array<TraceSelectItem>
+    addins: immutable.Map<string, TraceField>
+    nodeId: string
     className?: any
 }
 
-class RichFieldList extends React.PureComponent<RichFieldListProps> {
+interface RichFieldListState {
+    items: immutable.Map<number, TraceSelectItem>
+    exists: immutable.Map<string, number>
+    unique: immutable.Map<string, boolean>
+}
+
+class RichFieldList extends React.PureComponent<RichFieldListProps, RichFieldListState> {
 
     constructor(props) {
         super(props);
-        this.items = this.props.items;
+        this.state = this.initialization(this.props.addins);
     }
 
-    items: Array<TraceSelectItem> = null
+    initialization(addins: immutable.Map<string, TraceField>) {
+        return this.mapping(immutable.Map<number, TraceSelectItem>(), immutable.Map<string, number>(), immutable.Map<string, boolean>(), addins);
+    }
+
+    mapping(items: immutable.Map<number, TraceSelectItem>, exists: immutable.Map<string, number>, unique: immutable.Map<string, boolean>, addins: immutable.Map<string, TraceField>) {
+        // let { items, exists } = this.state;
+        const { nodeId } = this.props;
+        let tfs = addins.valueSeq().toArray();
+        for (let x = 0; x < tfs.length; x++) {
+            const tf = tfs[x];
+            const ue = unique.get(tf.id);
+            if (ue != null) continue;
+            const current = tf.trace.current(nodeId);
+            if (current == null) continue;
+
+            let item: AtomExpression = null;
+            let alias: Alias = null;
+            if (nodeId == tf.trace.creater.id) {
+                item = current.content;
+                alias = current.alias;
+            } else if (current.alias) {
+                item = new Column(current.alias.alias);
+            } else {
+                item = current.content;
+            }
+
+            if (item == null) continue;
+
+            const exid = exists.get(item.toString());
+            const exist = items.get(exid)
+            if (exist && (alias == null || alias.alias == item.toString())) {
+                let an = item.toString();
+                while (exists.get(an) != null) {
+                    an = GraphicParser.uniqueDesignation(an);
+                }
+                alias = new Alias(an, alias ? alias.as : false);
+            } else if (alias != null && items.get(exists.get(alias.alias)) != null) {
+                let an = alias.alias;
+                while (exists.get(an) != null) {
+                    an = GraphicParser.uniqueDesignation(an);
+                }
+                alias.alias = an;
+            }
+            let size = items.size;
+            items = items.set(size, new TraceSelectItem(item, alias, tf));
+            if (alias != null) {
+                exists = exists.set(alias.alias, size);
+            } else {
+                exists = exists.set(item.toString(), size);
+            }
+            unique = unique.set(tf.id, true);
+        }
+        return {
+            items: items,
+            exists: exists,
+            unique: unique
+        }
+    }
 
     componentWillReceiveProps(nextProps) {
-        this.items = nextProps.items;
+        this.setState(this.mapping(this.state.items, this.state.exists, this.state.unique, nextProps.addins));
     }
 
-    componentWillUnmount() {
-
+    rowGetter({ index }) {
+        const { items } = this.state;
+        return items.get(index);
     }
 
-    rowGetter(index) {
-        const { items } = this.props;
-        return items[index] ? items[index] : null;
+    noRowsRenderer() {
+        return <div className={'no-selected-field'}>{cn.option_select_tab_select_items_table_no_row}</div>
     }
 
-    selectRender() {
-        const { items } = this.props;
-        return <RV_AutoSizer disableHeight>
-            {({ width }) => (<RV_Table headerHeight={20} height={450} width={width} rowHeight={32} rowGetter={this.rowGetter.bind(this)} rowCount={items.length} >
-            <RV_Column 
-                    label={'Name'}
-                    cellDataGetter={(row) => { const data: TraceSelectItem = row.rowData; return data.item.content instanceof Column ? data.item.content.column : data.item.content.toString(); }}
-                    dataKey={'name'}
-                    width={120}
-                />
-                <RV_Column 
-                    label={'Alias'}
-                    cellDataGetter={(row) => { const data: TraceSelectItem = row.rowData; return data.item.alias ? data.item.alias : "" }}
-                    dataKey={'alias'}
-                    width={120}
-                />
-            </RV_Table>)}
+    rowClassName(row) {
+        if (row && row.index != null) {
+            if (row.index < 0) {
+                return 'rv-table-header-row';
+            } else {
+                return row.index % 2 === 0 ? 'rv-table-even-row' : 'rv-table-odd-row';
+            }
+        }
+    }
+
+    private alias: immutable.Map<number, any> = immutable.Map<number, any>()
+
+    public collect(): Array<TraceField> {
+        const { nodeId } = this.props;
+        const { items } = this.state;
+        const upper: Array<TraceField> = [];
+        this.alias.entrySeq().forEach(e => {
+            const index: number = e[0];
+            const value: TextField = e[1];
+            const alias = value.getValue();
+            const item = items.get(index);
+            if(item) {
+                const tf = item.getTraceField();
+                if (alias != null && alias.length != 0) {
+                    tf.trace.setDesignation(nodeId, alias);
+                    if(tf.trace.creater.id == nodeId) {
+                        tf.trace.creater.item.alias = new Alias(alias);
+                    }
+                }
+                upper.push(tf);
+            }
+        })
+        return upper;
+    }
+
+    private selectRender() {
+        const { className } = this.props;
+        const { items } = this.state;
+        return <RV_AutoSizer disableHeight className={className}>
+            {({ width }) => (
+                <RV_Table headerHeight={20} height={450} width={width} rowHeight={40}
+                    rowGetter={this.rowGetter.bind(this)}
+                    rowCount={items.size}
+                    rowClassName={this.rowClassName.bind(this)}
+                    noRowsRenderer={this.noRowsRenderer}>
+                    {/* <RV_Column
+                        label={'index'}
+                        cellDataGetter={(row) => { return row.rowData.index; }}
+                        dataKey={'index'}
+                        width={60}
+                    /> */}
+                    <RV_Column
+                        label={cn.option_select_tab_select_items_table_name}
+                        cellDataGetter={(row) => { const data: TraceSelectItem = row.rowData; return data.item instanceof Column ? data.item.column : data.item.toString(); }}
+                        dataKey={'name'}
+                        width={200}
+                    />
+                    <RV_Column
+                        label={cn.option_select_tab_select_items_table_alias}
+                        // cellDataGetter={(row) => { const data: TraceSelectItem = row.rowData.value; const alias = data.item.alias ? data.item.alias : null; return <input value={alias ? alias.alias : ""} />}}
+                        cellRenderer={({ rowData, rowIndex }) => {
+                            const data: TraceSelectItem = rowData;
+                            const alias = data.alias ? data.alias : null;
+                            return <TextField defaultValue={alias ? alias.alias : ""} name={uuid.v4()} ref={x => { this.alias = this.alias.set(rowIndex, x); }} /* onChange={this.aliasChange.bind(this)} data-index={rowData.index} */ />
+                        }}
+                        dataKey={'alias'}
+                        width={200}
+                    />
+                    <RV_Column
+                        label={cn.option_select_tab_select_items_table_as}
+                        cellDataGetter={(row) => { const data: TraceSelectItem = row.rowData; return data.alias ? data.alias.as : false }}
+                        dataKey={'as'}
+                        width={120}
+                    />
+                    <RV_Column
+                        label={cn.option_select_tab_select_items_table_from}
+                        cellDataGetter={(row) => { const data: TraceSelectItem = row.rowData; return data.from() }}
+                        dataKey={'from'}
+                        width={200}
+                    />
+                    <RV_Column
+                        label={cn.option_select_tab_select_items_table_datasource}
+                        cellDataGetter={(row) => { const data: TraceSelectItem = row.rowData; return data.datasource() }}
+                        dataKey={'datasource'}
+                        width={280}
+                    />
+                </RV_Table>)}
         </RV_AutoSizer>;
     }
 

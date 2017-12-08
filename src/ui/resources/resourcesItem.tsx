@@ -9,6 +9,7 @@ import { getEmptyImage } from 'react-dnd-html5-backend';
 import { cn } from '../text'
 import { DropTypes, InnerType } from '../common/drag'
 import { DataModel, DataDefine } from '../../common/data'
+import { TraceField, Trace, Designation } from '../../common/data/option/traceability';
 
 interface RIProps {
     connectDragSource?: ConnectDragSource
@@ -60,22 +61,16 @@ export default DragSource(DropTypes.RESOURCES, {
         let node = props.data;
         if (res && res.update && node) {
             // TODO update global graphic state
+            const key = uuid.v4();
             const data = node.get('data');
-            let sql = null;
             if (data instanceof DataModel.Data.Source) {
-                sql = new DataDefine.Select();
-                const table = new DataDefine.Table();
-                table.name = data.name;
-                sql.fromItem = table;
             } else if (data instanceof DataModel.Data.Model) {
-                
             }
             res.update(immutable.fromJS({
-                key : uuid.v4(),
+                key : key,
                 name : props.content,
                 identity : node.get('identity'),
-                data : node.get('data'),
-                sql: sql
+                data : node.get('data')
             }))
         }
     }

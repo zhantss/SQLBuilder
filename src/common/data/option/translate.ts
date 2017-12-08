@@ -4,6 +4,63 @@ export interface Translate extends Expression {
 
 }
 
+export class TraceTerm {
+    nodeId: string
+    traceId: string
+    term: AtomExpression
+    state?: any
+    constructor(nodeId: string, traceId: string, term: AtomExpression, state?: any) {
+        this.nodeId = nodeId;
+        this.traceId = traceId;
+        this.term = term;
+        this.state = state;
+    }
+}
+
+export class OperatorTerm {
+    operator: OptionOperator
+    state?: any
+    constructor(operator: OptionOperator, state?: any) {
+        this.operator = operator;
+        this.state = state;
+    }
+}
+
+export class ConnectTerm {
+    connect: OptionConnect
+    state?: any
+    constructor(connect: OptionConnect, state?: any) {
+        this.connect = connect;
+        this.state = state;
+    }
+}
+
+export class Conditional implements Translate {
+    connect?: ConnectTerm
+    left: TraceTerm
+    operator: OperatorTerm
+    right: TraceTerm
+
+    constructor(left: TraceTerm, operator: OperatorTerm, right: TraceTerm, connect?: ConnectTerm) {
+        this.connect = connect;
+        this.left = left;
+        this.operator = operator;
+        this.right = right;
+    }
+}
+
+export class ConditionalParentheses implements Translate {
+    connect?: ConnectTerm
+    content: Array<Translate>
+    constructor(content: Array<Translate>, connect?: ConnectTerm) {
+        this.content = content;
+        this.connect = connect;
+        if (this.content == null) {
+            this.content = new Array();
+        }
+    }
+}
+
 export class AtomOption implements Expression {
     left: AtomExpression
     operator: OptionOperator

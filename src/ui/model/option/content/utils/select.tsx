@@ -4,10 +4,13 @@ import * as classnames from 'classnames'
 import AutoComplete from 'material-ui/AutoComplete'
 import { AutoCompleteProps } from 'material-ui'
 
-interface SelectProps extends AutoCompleteProps<any> {
+interface SelectProps {
     identity: any
+    name: any
+    style?: any
+    textFieldStyle?: any
+    dataSource?: any
     init?: number
-    update(identity: any, value_: any)
 }
 
 interface SelectState {
@@ -40,16 +43,27 @@ class Select extends React.PureComponent<SelectProps, SelectState> {
         })
     }
 
+    collectValue() {
+        return this.state;
+    }
+
     componentDidUpdate() {
-        this.props.update(this.props.identity, this.state.index);
+
     }
 
     render() {
-        const props = { ...this.props };
-        delete props["identity"];
-        delete props["update"];
-        delete props["init"];
-        return <AutoComplete {...props} onNewRequest={this.update.bind(this)} searchText={this.state.text} />
+        const { name, style, textFieldStyle, dataSource } = this.props;
+        const { text } = this.state;
+        return <AutoComplete
+            name={name}
+            style={style}
+            textFieldStyle={textFieldStyle}
+            dataSource={dataSource}
+            openOnFocus={true}
+            filter={AutoComplete.noFilter}
+            searchText={text ? text : ""}
+            onNewRequest={this.update.bind(this)}
+        />
     }
 }
 

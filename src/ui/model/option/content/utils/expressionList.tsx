@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as classnames from 'classnames'
 import * as uuid from 'uuid'
+import * as immutable from 'immutable'
 
 import { List, ListItem } from 'material-ui/List'
 import AutoComplete from 'material-ui/AutoComplete'
@@ -12,44 +13,143 @@ import MenuItem from 'material-ui/MenuItem'
 import { SimpleIcon as Icon } from '../../../../icon'
 import Select from './select'
 import Input from './input'
+import ExpressionInput from './expressionInput'
 
 import { cn } from '../../../../text'
 import { connect2 } from '../../../../../common/connect'
 import { DataModel, DataDefine } from '../../../../../common/data'
-import { Expression, operators, OptionOperatorEnumToSQL, OptionOperator, connects, OptionConnect, OptionConncetEnumToSQL, Value, Column, Function } from '../../../../../common/data/define/expression'
-import { Translate, AtomOption, ConnectAtomOption, GroupParentheses } from '../../../../../common/data/option/translate'
+import { Expression, operators, OptionOperatorEnumToSQL, OptionOperator, connects, OptionConnect, OptionConncetEnumToSQL, Value, Column, Function, Parentheses } from '../../../../../common/data/define/expression'
+import { Translate, Conditional, ConditionalParentheses, TraceTerm, OperatorTerm, ConnectTerm } from '../../../../../common/data/option/translate'
+import { Creater, TraceField } from '../../../../../common/data/option/traceability';
 
 interface ExpressionListProps {
     addition: any
     expressions: Array<Translate>
     flush(key_: any, new_: Expression): any
-    left: Array<any>
-    right: Array<any>
+    db: immutable.Map<string, immutable.List<TraceField>>
+    group: immutable.Map<string, Creater>
+    // left: Array<any>
+    // right: Array<any>
     match?: boolean
     className?: any
+    targetId: string
+    nodeId: string
 }
 
-class ExpressionList extends React.PureComponent<ExpressionListProps> {
+interface ExpressionListState {
+    data: immutable.Map<any, any>
+}
+
+interface ElementTreeNode { }
+
+class ConnectNode implements ElementTreeNode {
+    identity: Array<number>
+    connect?: Select
+    left?: ExpressionInput
+    operator?: Select
+    right?: ExpressionInput
+    constructor(identity: Array<number>) {
+        this.identity = identity;
+    }
+}
+
+class GroupNode implements ElementTreeNode {
+    identity: Array<number>
+    connect?: any
+    constructor(identity: Array<number>) {
+        this.identity = identity;
+    }
+}
+
+class ElementList {
+    nodes: immutable.Map<any, any>
+    constructor() {
+        this.nodes = immutable.Map<any, any>()
+    }
+
+    setElementNode(sequence: Array<number>, node: ElementTreeNode) {
+        this.nodes = this.nodes.setIn([].concat(sequence).concat(['data']), node);
+    }
+
+    getElementNode(sequence: Array<number>): ElementTreeNode {
+        return this.nodes.getIn([].concat(sequence).concat(['data']));
+    }
+
+    combine(data: immutable.Map<any, any>, targetId: string, nodeId: string) {
+        const translates = new Array<Translate>();
+        if (this.nodes && data && targetId && nodeId) {
+            data.toSeq().forEach((value, index) => {
+                const sq = [].concat([index]);
+                const translate = this.process(value, sq, data, targetId, nodeId);
+                if (translate) translates.push(translate);
+            })
+        }
+        return translates;
+    }
+
+    private process(value: immutable.Map<any, any>, index: Array<any>, data: immutable.Map<any, any>, targetId: string, nodeId: string) {
+        if (value == null) return null;
+        const ori = value.get('data');
+        const del = value.get('delete');
+        const el = this.nodes.getIn([].concat(index).concat('data'));
+        if (ori && el && !del) {
+            if (el instanceof ConnectNode && ori instanceof Conditional) {
+                const connect_state = el.connect ? el.connect .collectValue() : null;
+                if (connect_state) ori.connect = new ConnectTerm(connect_state.index, connect_state);
+
+                const left_state = el.left ? el.left.collectValue() : null;
+                if (left_state) {
+                    const dbv = left_state.dbValue;
+                    const custormv = left_state.customValue;
+                    if (dbv) {
+                        const tf: TraceField = dbv.value;
+                        const current = tf.trace.current(targetId);
+                        ori.left = new TraceTerm(tf.trace.creater.id, tf.id, current ? current.content.clone() : tf.trace.creater.item.content.clone(), left_state);
+                    } else if (custormv) {
+                        ori.left = new TraceTerm(null, null, new Value(custormv), left_state);
+                    }
+                }
+
+                const right_state = el.right ? el.right.collectValue() : null;
+                if (right_state) {
+                    const dbv = right_state.dbValue;
+                    const custormv = right_state.customValue;
+                    if (dbv) {
+                        const tf: TraceField = dbv.value;
+                        const current = tf.trace.current(targetId);
+                        ori.right = new TraceTerm(tf.trace.creater.id, tf.id, current ? current.content.clone() : tf.trace.creater.item.content.clone(), left_state);
+                    } else if (custormv) {
+                        ori.right = new TraceTerm(null, null, new Value(custormv), right_state);
+                    }
+                }
+
+                const operator_state = el.operator ? el.operator.collectValue() : null;
+                if (operator_state) ori.operator = new OperatorTerm(operator_state.index, operator_state);
+            } else if (el instanceof GroupNode && ori instanceof ConditionalParentheses) {
+                const connect_state = el.connect.collectValue();
+                if (connect_state) ori.connect = new ConnectTerm(connect_state.index, connect_state);
+
+                const translates = [];
+                value.toSeq().forEach((value, inx) => {
+                    if (inx != 'data' && inx != 'delete') {
+                        const sq = [].concat(index).concat([inx]);
+                        const translate = this.process(value, sq, data, targetId, nodeId);
+                        if (translate) translates.push(translate);
+                    }
+                })
+                ori.content = translates;
+            }
+            return ori;
+        }
+        return null;
+    }
+}
+
+class ExpressionList extends React.PureComponent<ExpressionListProps, ExpressionListState> {
 
     ItemStyle = {
         padding: "0 9px"
     }
-
-    AcRootLStyle = {
-        width: "125px",
-        marginLeft: "10px"
-    }
-
-    AcTextLStyle = {
-        width: "125px"
-    }
-
-    AcRootRStyle = {
-        width: "125px",
-        marginLeft: "10px"
-    }
-
-    AcTextRStyle = this.AcTextLStyle
 
     AcRootOStyle = {
         width: "80px",
@@ -68,258 +168,284 @@ class ExpressionList extends React.PureComponent<ExpressionListProps> {
         width: "48px"
     }
 
-    temp = null;
-
     constructor(props) {
         super(props);
-        this.temp = this.props.expressions;
-    }
-
-    match(props) {
-        const { expressions, match, left, right, addition, flush } = props;
-        if ((expressions == null || expressions.length <= 0) && match && left && right) {
-            const exps = new Array()
-            left.forEach(l => {
-                right.forEach(r => {
-                    if (l == r) {
-                        exps.push(
-                            new ConnectAtomOption(
-                                new AtomOption(new Column(l), 
-                                OptionOperator.Equal, 
-                                new Column(r)), 
-                                exps.length == 0 ? null : OptionConnect.AND)
-                            );
-                    }
-                })
-            });
-            this.temp = exps;
-            flush(addition, this.temp);
+        this.state = {
+            data: this.translateLoad(this.props.expressions)
         }
     }
 
-    updateTemp(exp) {
-        this.temp = exp;
-    }
+    private elementRefs = new ElementList();
 
     componentWillReceiveProps(nextProps) {
-        this.temp = nextProps.expressions;
+        this.setState({
+            data: this.translateLoad(nextProps.expressions)
+        })
+        // this.data = this.translateLoad(nextProps.expressions);
     }
 
     componentWillMount() {
-        this.match(this.props);
+        // this.match(this.props);
     }
 
-    componentWillUnmount() {
-        const { addition, flush } = this.props;
-        flush(addition, this.temp)
+    collectTranslate() {
+        const { targetId, nodeId } = this.props;
+        const { data } = this.state;
+        const tid = targetId.substr(0, targetId.length - ".JOIN".length);
+        const nid = nodeId.substr(0, nodeId.length - ".JOIN".length);
+        return this.elementRefs.combine(data, tid, nid);
     }
 
-    newCAOTranslate(event) {
-        const { expressions, addition, flush } = this.props;
-        const identity = event.currentTarget.dataset.identity;
-        let n: Array<Translate> = [].concat(expressions);
-        let control = this.findTranslate(n, identity);
-        if (control == null) {
-            n.push(new ConnectAtomOption(new AtomOption(null, OptionOperator.Equal, null), n.length > 0 ? OptionConnect.AND : null));
+    private translateLoad(expressions: Array<Translate>): immutable.Map<any, any> {
+        let data = immutable.Map<any, any>();
+        for (let i = 0; i < expressions.length; i++) {
+            const translate = expressions[i];
+            data = data.merge(this.processTranslate(translate, [i]));
+        }
+        data = data.setIn(['number'], expressions.length);
+        return data;
+    }
+
+    private processTranslate(translate: Translate, identity: Array<number>): immutable.Map<any, any> {
+        let data = immutable.Map<any, any>();
+        if (translate instanceof ConditionalParentheses) {
+            data = data.setIn([].concat(identity).concat(['data']), translate);
+            const content = translate.content;
+            for (let i = 0; i < content.length; i++) {
+                this.processTranslate(content[i], [].concat(identity).concat([i]));
+            }
+            data = data.setIn([].concat(identity).concat(['number']), content.length);
+        } else if (translate instanceof Conditional) {
+            data = data.setIn([].concat(identity).concat(['data']), translate);
+        }
+        return data;
+    }
+
+    private newCAOTranslate(event) {
+        // const { expressions, addition, flush } = this.props;
+        let { nodeId } = this.props;
+        let { data } = this.state;
+        const identity: string = event.currentTarget.dataset.identity;
+        const ary: Array<number> = identity.split('-').map(x => {
+            return parseInt(x);
+        }).filter(x => {
+            return x != null && !isNaN(x);
+        });
+        if (ary.length == 0) {
+            let number = data.getIn(['number']);
+            const size = data.size;
+            const el = //new ConnectAtomOption(new AtomOption(null, OptionOperator.Equal, null), size > 0 ? OptionConnect.AND : null)
+                new Conditional(
+                    new TraceTerm(null, null, null),
+                    new OperatorTerm(OptionOperator.Equal),
+                    new TraceTerm(null, null, null),
+                    number > 0 ? new ConnectTerm(OptionConnect.AND) : null);
+            data = data.setIn([size - 1, 'data'], el);
+            if(number == null || number < 0) number = 0;
+            data = data.setIn(['number'], number + 1);
         } else {
-            if (control instanceof GroupParentheses) {
-                control.content.push(new ConnectAtomOption(new AtomOption(null, OptionOperator.Equal, null), control.content.length > 0 ? OptionConnect.AND : null));
-            }
+            const target = data.getIn(ary);
+            if (target) {
+                let number = target.getIn(['number']);
+                const size = target.size;
+                const el = // new ConnectAtomOption(new AtomOption(null, OptionOperator.Equal, null), size > 0 ? OptionConnect.AND : null)
+                    new Conditional(
+                        new TraceTerm(null, null, null),
+                        new OperatorTerm(OptionOperator.Equal),
+                        new TraceTerm(null, null, null),
+                        number > 0 ? new ConnectTerm(OptionConnect.AND) : null);
+                data = data.setIn([].concat(ary).concat([size - 2, 'data']), el);
+                if(number == null || number < 0) number = 0;
+                data = data.setIn([].concat(ary).concat(['number']), number + 1);
+            } /* else {
+                const el = // new ConnectAtomOption(new AtomOption(null, OptionOperator.Equal, null), null)
+                    new Conditional(
+                        new TraceTerm(null, null, null),
+                        new OperatorTerm(OptionOperator.Equal),
+                        new TraceTerm(null, null, null),
+                        null);
+                data = data.setIn([].concat(ary).concat(['data']), el);
+            } */
         }
-        this.updateTemp(n);
-        flush(addition, n)
+        this.setState({
+            data: data
+        })
     }
 
-    newGPTranslate(event) {
-        const { expressions, addition, flush } = this.props;
-        const identity = event.currentTarget.dataset.identity;
-        let n: Array<Translate> = [].concat(expressions);
-        let control = this.findTranslate(n, identity);
-        if (control == null) {
-            n.push(new GroupParentheses([], n.length > 0 ? OptionConnect.AND : null))
+    private newGPTranslate(event) {
+        // const { expressions, addition, flush } = this.props;
+        let { data } = this.state;
+        const identity: string = event.currentTarget.dataset.identity;
+        const ary: Array<number> = identity.split('-').map(x => {
+            return parseInt(x);
+        }).filter(x => {
+            return x != null && !isNaN(x);
+        });
+        if (ary.length == 0) {
+            let number = data.getIn(['number']);
+            const size = data.size;
+            const el = // new GroupParentheses([], size > 0 ? OptionConnect.AND : null);
+            new ConditionalParentheses([], number > 0 ? new ConnectTerm(OptionConnect.AND) : null);
+            data = data.setIn([size - 1, 'data'], el);
+            data = data.setIn([size - 1, 'number'], 0);
+            if(number == null || number < 0) number = 0;
+            data = data.setIn(['number'], number + 1);
         } else {
-            if (control instanceof GroupParentheses) {
-                control.content.push(new GroupParentheses([], OptionConnect.AND));
-            }
+            const target = data.getIn(ary);
+            if (target) {
+                let number = target.getIn(['number']);
+                const size = target.size;
+                const el = // new GroupParentheses([], size > 0 ? OptionConnect.AND : null);
+                new ConditionalParentheses([], number > 0 ? new ConnectTerm(OptionConnect.AND) : null);
+                data = data.setIn([].concat(ary).concat([size - 2, 'data']), el);
+                data = data.setIn([].concat(ary).concat([size - 2, 'number']), 0);
+                if(number == null || number < 0) number = 0;
+                data = data.setIn([].concat(ary).concat(['number']), number + 1);
+            } /* else {
+                const el = // new ConnectAtomOption(new AtomOption(null, OptionOperator.Equal, null), null)
+                    new ConditionalParentheses([], null);
+                data = data.setIn([].concat(ary).concat(['data']), el);
+            } */
         }
-        this.updateTemp(n);
-        flush(addition, n)
+        this.setState({
+            data: data
+        })
     }
 
-    deleteTranslate(event) {
-        const { expressions, addition, flush } = this.props;
-        const identity = event.currentTarget.dataset.identity;
-        let n: Array<Translate> = [].concat(expressions);
-        let find = this.findThisPreTranlate(n, identity);
-        if (find == null) {
-            return;
-        }
-        let control = find.control;
-        let last = find.last;
-        if (control == null) {
-            n.splice(last, 1);
-        }
-        if (control instanceof GroupParentheses) {
-            control.content.splice(last, 1);
-            if (control.content.length >= 1) {
-                control = control.content[0];
-                if (control instanceof ConnectAtomOption || control instanceof GroupParentheses) {
-                    control.connect = null;
+    private deleteTranslate(event) {
+        let { data } = this.state;
+        const identity: string = event.currentTarget.dataset.identity;
+        const ary: Array<number> = identity.split('-').map(x => {
+            return parseInt(x);
+        }).filter(x => {
+            return x != null && !isNaN(x);
+        });
+        if (ary && ary.length > 0) {
+            const keypath = [].concat(ary).concat(['data']);
+            const target = data.getIn(keypath);
+            const cutp = ary.slice(0, ary.length - 1);
+            const number = data.getIn([].concat(cutp).concat(['number']));
+            if (target != null && number != null) {
+                data = data.setIn([].concat(ary).concat(['delete']), true);
+                data = data.setIn([].concat(cutp).concat(['number']), number - 1);
+                if(target instanceof Conditional || target instanceof ConditionalParentheses) {
+                    const connect = target.connect;
+                    if(connect == null || connect.connect == null) {
+                        const cut = data.getIn([].concat(cutp));
+                        const size = cut.size - (cutp.length == 0 ? 1 : 2);
+                        for(let i = ary[ary.length - 1] + 1; i < size; i++) {
+                            const t = data.getIn([].concat(cutp).concat([i]));
+                            if(t == null) continue; 
+                            const del = t.get('delete');
+                            if(del) continue;
+                            const td = t.get('data');
+                            if(td instanceof Conditional || td instanceof ConditionalParentheses) {
+                                td.connect = null;
+                                data = data.setIn([].concat(cutp).concat([i, 'data']), td);
+                                break;
+                            }
+                        }
+                    }
                 }
-            }
-        }
-        if (n.length >= 1) {
-            control = n[0];
-            if (control instanceof ConnectAtomOption || control instanceof GroupParentheses) {
-                control.connect = null;
-            }
-        }
-        this.updateTemp(n);
-        flush(addition, n)
-    }
-
-    findThisPreTranlate(exps: Array<Translate>, identity: string): any {
-        let n: Array<Translate> = exps;
-        let cor = identity.split(".");
-        let length = cor.length;
-        let last = null;
-        if (length == 1) {
-            return {
-                last: Number(cor[0]),
-                control: null
-            };
-        }
-        last = cor[length - 1];
-        cor = cor.slice(0, length - 1);
-        let control: any = n;
-        for (let c in cor) {
-            const curr = Number(cor[c]);
-            if (!isNaN(curr)) {
-                if (control instanceof Array) {
-                    control = control[curr]
-                } else if (control instanceof GroupParentheses) {
-                    control = control.content[curr];
+                /* 
+                // data = data.deleteIn([].concat(ary));
+                const index = ary[ary.length - 1];
+                const pre = ary.slice(0, ary.length - 1);
+                let sq = null
+                let size = 0;
+                if(pre.length == 0) {
+                    sq = data;
+                    size = sq.size;
+                } else {
+                    sq = data.getIn([].concat(pre));
+                    size = sq.size - 1;
                 }
-            } else {
-                return null;
-            }
-        }
-        return {
-            last: Number(last),
-            control: control
-        };
-    }
-
-    findTranslate(exps: Array<Translate>, identity: string): any {
-        let n: Array<Translate> = exps;
-        const cor = identity.split(".");
-        let control: any = n;
-        for (let c in cor) {
-            const curr = Number(cor[c]);
-            if (!isNaN(curr)) {
-                if (control instanceof Array) {
-                    control = control[curr]
-                } else if (control instanceof GroupParentheses) {
-                    control = control.content[curr];
+                if (sq) {
+                    let i = index + 1;
+                    for (; i < size; i++) {
+                        const up = data.getIn([].concat(pre).concat([i]));
+                        if (up) {
+                            data = data.setIn([].concat(pre).concat([i - 1]), up);
+                        } else {
+                            break;
+                        }
+                    }
+                    data = data.deleteIn([].concat(pre).concat([size - 1]));
                 }
-            } else {
-                return null;
-            }
+             */}
         }
-        return control;
+        this.setState({
+            data: data
+        })
     }
 
-    updateConnectTranslate(identity: string, value_: any) {
-        const { expressions, addition, flush } = this.props;
-        let n: Array<Translate> = [].concat(expressions);
-        let control = this.findTranslate(n, identity);
-        if (control instanceof ConnectAtomOption) {
-            control.connect = value_;
-            this.updateTemp(n);
-        } else if (control instanceof GroupParentheses) {
-            control.connect = value_;
-            this.updateTemp(n);
-        }
+    private listRender() {
+        // const { expressions/* , left, right */ } = this.props;
+        const { data } = this.state;
+        return this.listCreate(data);
     }
 
-    updateOperatorTranslate(identity: string, value_: any) {
-        const { expressions, addition, flush } = this.props;
-        let n: Array<Translate> = [].concat(expressions);
-        let control = this.findTranslate(n, identity);
-        if (control instanceof ConnectAtomOption) {
-            control.content.operator = value_;
-            this.updateTemp(n);
-        }
-    }
-
-    updateInputTranslate(identity: string, right: boolean, value_: any) {
-        const { expressions, addition, flush } = this.props;
-        let n: Array<Translate> = [].concat(expressions);
-        let control = this.findTranslate(n, identity);
-        if (control instanceof ConnectAtomOption) {
-            if (!right) {
-                control.content.left = value_;
-            } else {
-                control.content.right = value_;
-            }
-            this.updateTemp(n);
-        }
-    }
-
-    listRender() {
-        const { expressions, left, right } = this.props;
-        return this.listCreate(expressions);
-    }
-
-    listCreate(translates: Array<Translate>) {
+    private listCreate(translates: immutable.Map<any, any>) {
         const items = new Array();
-        for (let i = 0; i < translates.length; i++) {
-            const translate = translates[i];
-            const curr = this.listItemCreate(translate, i.toString());
-            if (curr) { items.push(curr) };
+        // let number = translates.getIn(['number']);
+        let size = translates.size;
+        for (let i = 0; i < size; i++) {
+            let node = translates.get(i);
+            if (node) {
+                const curr = this.listItemCreate(node, [i]);
+                if (curr) { items.push(curr) };
+            }
         }
         items.push(<ListItem
             key={"new"}
-            primaryText={this.toolItemCreate("new")}
+            primaryText={this.toolItemCreate([])}
             hoverColor="none"
             disabled={true}
             style={this.ItemStyle} />);
         return <List>{items}</List>
     }
 
-    toolItemCreate(identity: string) {
+    private toolItemCreate(identity: Array<number>) {
         return <div className="list-add-btn">
-            <IconButton data-identity={identity} onTouchTap={this.newCAOTranslate.bind(this)}><Icon name={"add"} /></IconButton>
-            <IconButton data-identity={identity} onTouchTap={this.newGPTranslate.bind(this)}><Icon name={"chevron_left"} /><Icon name={"chevron_right"} /></IconButton>
+            <IconButton data-identity={identity.join("-")} onTouchTap={this.newCAOTranslate.bind(this)}><Icon name={"add"} /></IconButton>
+            <IconButton data-identity={identity.join("-")} onTouchTap={this.newGPTranslate.bind(this)}><Icon name={"chevron_left"} /><Icon name={"chevron_right"} /></IconButton>
         </div>
     }
 
-    listItemCreate(tranlate: Translate, identity: string) {
-        const { left, right } = this.props;
-        if (tranlate instanceof GroupParentheses) {
+    private listItemCreate(node: immutable.Map<any, any>, identity: Array<number>) {
+        const { /* left, right, */ group, db, targetId, nodeId } = this.props;
+
+        // let number = node.getIn(['number']);
+        let size = node.size;
+        const tranlate: Translate = node.get("data");
+        const del = node.get('delete');
+        if (del) {
+            return null;
+        }
+        if (tranlate instanceof ConditionalParentheses) {
             const items = new Array();
             const connect = tranlate.connect;
-            const content = tranlate.content;
-            for (let i = 0; i < content.length; i++) {
-                const tc = content[i];
-                const curr = this.listItemCreate(tc, identity + "." + i.toString());
+            for (let i = 0; i < size - 2; i++) {
+                const nid = [].concat(identity);
+                nid.push(i);
+                const curr = this.listItemCreate(node.get(i), nid);
                 if (curr) { items.push(curr) };
             }
             items.push(<ListItem
-                key={identity}
+                key={identity.join("-")}
                 primaryText={this.toolItemCreate(identity)}
                 hoverColor="none"
                 disabled={true}
                 style={this.ItemStyle} />);
             return <ListItem
-                key={identity}
+                key={identity.join("-")}
                 hoverColor="none"
                 disabled={true}
                 style={this.ItemStyle}
                 primaryText={
-                    <div className={"expression-item"} data-identity={identity}>
+                    <div className={"expression-item"} data-identity={identity.join("-")}>
                         <div className="item-btn">
-                            <IconButton data-identity={identity} onTouchTap={this.deleteTranslate.bind(this)}><Icon name={"clear"} /></IconButton>
+                            <IconButton data-identity={identity.join("-")} onTouchTap={this.deleteTranslate.bind(this)}><Icon name={"clear"} /></IconButton>
                         </div>
                         <div className={"item-andor"}>
                             {
@@ -327,13 +453,21 @@ class ExpressionList extends React.PureComponent<ExpressionListProps> {
                                     <Select
                                         identity={identity}
                                         name={identity + "-andor"}
-                                        init={connect}
-                                        update={this.updateConnectTranslate.bind(this)}
                                         style={this.AndOrRootStyle}
                                         textFieldStyle={this.AndOrTextStyle}
-                                        openOnFocus={true}
-                                        filter={AutoComplete.noFilter}
+                                        init={connect.connect}
                                         dataSource={connects}
+                                        ref={x => {
+                                            const node: ElementTreeNode = this.elementRefs.getElementNode(identity);
+                                            if (node == null) {
+                                                const curr = new GroupNode(identity);
+                                                curr.connect = x;
+                                                this.elementRefs.setElementNode(identity, curr);
+                                            } else if (node instanceof ConnectNode) {
+                                                node.connect = x;
+                                                this.elementRefs.setElementNode(identity, node);
+                                            }
+                                        }}
                                     />
                                     : null
                             }
@@ -344,37 +478,44 @@ class ExpressionList extends React.PureComponent<ExpressionListProps> {
                 nestedItems={items}
             />
         }
-        if (tranlate instanceof ConnectAtomOption) {
+        if (tranlate instanceof Conditional) {
             const connect = tranlate.connect;
-            const content = tranlate.content;
             return <ListItem
-                key={identity}
+                key={identity.join("-")}
                 hoverColor="none"
                 disabled={true}
                 style={this.ItemStyle}
                 primaryText={
-                    <div className={"expression-item"} data-identity={identity}>
+                    <div className={"expression-item"} data-identity={identity.join("-")}>
                         <div className="item-btn">
-                            <IconButton data-identity={identity} onTouchTap={this.deleteTranslate.bind(this)}><Icon name={"clear"} /></IconButton>
+                            <IconButton data-identity={identity.join("-")} onTouchTap={this.deleteTranslate.bind(this)}><Icon name={"clear"} /></IconButton>
                         </div>
                         <div className={"item-andor"}>
                             {
                                 connect != null ?
                                     <Select
-                                        identity={identity}
-                                        name={identity + "-andor"}
-                                        init={connect}
-                                        update={this.updateConnectTranslate.bind(this)}
+                                        identity={identity.join("-")}
+                                        name={identity.join("-") + "-andor"}
                                         style={this.AndOrRootStyle}
                                         textFieldStyle={this.AndOrTextStyle}
-                                        openOnFocus={true}
-                                        filter={AutoComplete.noFilter}
+                                        init={connect.connect}
                                         dataSource={connects}
+                                        ref={x => {
+                                            const node: ElementTreeNode = this.elementRefs.getElementNode(identity);
+                                            if (node == null) {
+                                                const curr = new ConnectNode(identity);
+                                                curr.connect = x;
+                                                this.elementRefs.setElementNode(identity, curr);
+                                            } else if (node instanceof ConnectNode) {
+                                                node.connect = x;
+                                                this.elementRefs.setElementNode(identity, node);
+                                            }
+                                        }}
                                     />
                                     : null
                             }
                         </div>
-                        <Input 
+                        {/* <Input 
                             identity={identity}
                             name={identity + "-left"}
                             init={content.left}
@@ -383,19 +524,64 @@ class ExpressionList extends React.PureComponent<ExpressionListProps> {
                             textFieldStyle={this.AcTextLStyle} 
                             openOnFocus={true} 
                             filter={AutoComplete.fuzzyFilter} 
-                            dataSource={left} />
+                            dataSource={left} /> */}
+                        <ExpressionInput
+                            identity={identity.join("-")}
+                            name={identity.join("-") + "-left"}
+                            init={tranlate.left.state}
+                            db={db}
+                            group={group}
+                            targetId={targetId}
+                            nodeId={nodeId}
+                            ref={x => {
+                                const node: ElementTreeNode = this.elementRefs.getElementNode(identity);
+                                if (node == null) {
+                                    const curr = new ConnectNode(identity);
+                                    curr.left = x;
+                                    this.elementRefs.setElementNode(identity, curr);
+                                } else if (node instanceof ConnectNode) {
+                                    node.left = x;
+                                    this.elementRefs.setElementNode(identity, node);
+                                }
+                            }} />
                         <Select
-                            identity={identity}
-                            name={identity + "-operator"}
-                            init={content.operator}
-                            update={this.updateOperatorTranslate.bind(this)}
+                            identity={identity.join("-")}
+                            name={identity.join("-") + "-operator"}
                             style={this.AcRootOStyle}
                             textFieldStyle={this.AcTextOStyle}
-                            openOnFocus={true}
-                            filter={AutoComplete.noFilter}
                             dataSource={operators}
-                        />
-                        <Input 
+                            init={tranlate.operator.operator}
+                            ref={x => {
+                                const node: ElementTreeNode = this.elementRefs.getElementNode(identity);
+                                if (node == null) {
+                                    const curr = new ConnectNode(identity);
+                                    curr.operator = x;
+                                    this.elementRefs.setElementNode(identity, curr);
+                                } else if (node instanceof ConnectNode) {
+                                    node.operator = x;
+                                    this.elementRefs.setElementNode(identity, node);
+                                }
+                            }} />
+                        <ExpressionInput
+                            identity={identity.join("-")}
+                            name={identity.join("-") + "-right"}
+                            init={tranlate.right.state}
+                            db={db}
+                            group={group}
+                            targetId={targetId}
+                            nodeId={nodeId}
+                            ref={x => {
+                                const node: ElementTreeNode = this.elementRefs.getElementNode(identity);
+                                if (node == null) {
+                                    const curr = new ConnectNode(identity);
+                                    curr.right = x;
+                                    this.elementRefs.setElementNode(identity, curr);
+                                } else if (node instanceof ConnectNode) {
+                                    node.right = x;
+                                    this.elementRefs.setElementNode(identity, node);
+                                }
+                            }} />
+                        {/* <Input 
                             identity={identity}
                             name={identity + "-right"}
                             init={content.right}
@@ -405,7 +591,7 @@ class ExpressionList extends React.PureComponent<ExpressionListProps> {
                             textFieldStyle={this.AcTextRStyle} 
                             openOnFocus={true} 
                             filter={AutoComplete.fuzzyFilter} 
-                            dataSource={right} />
+                            dataSource={right} /> */}
                     </div>
                 }
             />
@@ -417,6 +603,7 @@ class ExpressionList extends React.PureComponent<ExpressionListProps> {
         const { expressions, className } = this.props
         return (
             <div className={className ? className : null}>
+                {/* this.listRender() */}
                 {this.listRender()}
             </div>
         );

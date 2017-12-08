@@ -4,6 +4,56 @@ import { graphic as action } from '../actions'
 import create from './create'
 
 import { DataModel } from '../data'
+import { Trace, TraceField, Designation, Creater, DataSource } from '../data/option/traceability';
+import { SelectItem, Alias } from '../data/define/extra';
+import { Column } from '../data/define/expression';
+
+function collectionTraceField(node): any {
+    const key = node.get('key');
+    const identity = node.get('identity');
+    const name = node.get('name');
+    const path = node.get('path').toJS();
+    const data = node.get('data');
+    let tfs: immutable.Map<string, TraceField> = node.get('tfs');
+    let fs = null;
+    if (data instanceof DataModel.Data.Source) {
+        fs = data.fields;
+    } else if (data instanceof DataModel.Data.Model) {
+        fs = data.fields;
+    }
+    if(tfs) {
+        tfs = immutable.Map<string, TraceField>(tfs.map((value, key) => {
+            let v = value;
+            v.trace.update(path);
+            return v;
+        }));/* 
+        fs.forEach(f => {
+            let tf: TraceField = tfs.getIn([f.identity]);
+            if (tf) {
+                tf.trace.updatePath(path);
+                tfs.setIn([tf.identity], tf);
+            } else {
+                const trace = new Trace(key, name, path);
+                const item = new SelectItem(new Column(f.name));
+                if (f.alias) { item.alias = new Alias(f.alias, true); }
+                const tf = new TraceField(f.identity, item, trace);
+                tfs = tfs.setIn([tf.identity], tf);
+            }
+        }) */
+    } else {
+        tfs = immutable.Map<string, TraceField>();
+        fs.forEach(f => {
+            const item = new SelectItem(new Column(f.name));
+            if (f.alias) { item.alias = new Alias(f.alias, true); }
+            const creater = new Creater(key, identity, name, item.clone());
+            const datasource = new DataSource(key, identity, name, item.clone());
+            const trace = new Trace(datasource, creater, path);
+            const tf = new TraceField(f.identity, trace);
+            tfs = tfs.setIn([tf.id], tf);
+        })
+    }
+    return node.set('tfs', tfs);
+}
 
 const graphic = create(init, {
     [action.$types.DELETE](state, action) {
@@ -102,6 +152,7 @@ const graphic = create(init, {
                         path = immutable.fromJS([currentNode.get('key')]);
                     }
                     currentNode = currentNode.set('path', path);
+                    currentNode = collectionTraceField(currentNode);
                     return state.setIn(['graphic', action.parentKey, 'nodes'], nodes).setIn(['graphic', currentNode.get('key')], currentNode);
                 } else {
                     return state;
@@ -118,6 +169,7 @@ const graphic = create(init, {
                 }
 
                 currentNode = currentNode.set('parent', null).set('path', immutable.fromJS([currentNode.get('key')]));
+                currentNode = collectionTraceField(currentNode);
                 return state.setIn(['graphic', currentNode.get('key')], currentNode);
                 
                 // if (currentPath != null && currentPath.size > 0) {
@@ -138,6 +190,22 @@ const graphic = create(init, {
             let node = state.getIn(['graphic', nodeKey]);
             if (node) {
                 node = node.set('data', data);
+                return state.setIn(['graphic', nodeKey], node);
+            }
+        }
+        return state;
+    },
+    [action.$types.SELECT](state, action) {
+        let nodeKey = action.nodeKey;
+        let tfs = action.tfs;
+        let appends = action.appends;
+        let selects = action.selects;
+        if(nodeKey && tfs && appends) {
+            let node = state.getIn(['graphic', nodeKey]);
+            if (node) {
+                node = node.set('tfs', tfs);
+                node = node.set('appends', appends);
+                node = node.set('selects', selects);
                 return state.setIn(['graphic', nodeKey], node);
             }
         }

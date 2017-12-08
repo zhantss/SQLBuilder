@@ -10,6 +10,10 @@ export class Alias {
         this.alias = alias;
         this.as = as ? true : false;
     }
+
+    clone(): Alias {
+        return new Alias(this.alias, this.as);
+    }
 }
 
 export enum OrderMode {
@@ -25,8 +29,12 @@ export class SelectItem {
     alias?: Alias
     content: AtomExpression
 
-    constructor(content: AtomExpression, alias?: Alias, as?: boolean) {
+    constructor(content: AtomExpression, alias?: Alias) {
         this.content = content;
         this.alias = alias;
+    }
+
+    clone() {
+        return new SelectItem(this.content.clone(), this.alias ? this.alias.clone() : null);
     }
 }

@@ -17,7 +17,6 @@ import { cn } from '../../../../text'
 import { connect2 } from '../../../../../common/connect'
 import { DataModel, DataDefine } from '../../../../../common/data'
 import { Expression, AtomExpression, Value, Column, Function } from '../../../../../common/data/define/expression'
-import { AtomOption } from '../../../../../common/data/option/translate'
 import { Option, OptionTarget } from '../../../../../common/data/option'
 import { SelectableExpression } from '../../../../../common/data/option/selectable'
 

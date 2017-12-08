@@ -1,3 +1,4 @@
+import * as uuid from 'uuid'
 import { getSelectItems } from '../utils/sqlparser'
 
 export enum DataType {
@@ -9,6 +10,7 @@ export interface Data {
 }
 
 export class Field {
+    identity: string
     name: string
     alias?: string
     type?: string   //TODO
@@ -17,6 +19,7 @@ export class Field {
         this.name = name;
         this.type = type;
         this.alias = alias;
+        this.identity = uuid.v4();
     }
 }
 
