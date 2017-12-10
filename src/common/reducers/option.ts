@@ -6,13 +6,32 @@ import create from './create'
 const option = create(init, {
     [action.$types.SUBMIT](state, action) {
         if (action.identity && action.option) {
-            state = state.setIn(['options', action.identity], action.option)
+            const copy = state.getIn(['options', action.identity + ".BACKUP"]);
+            if(copy) {
+                state = state.deleteIn(['options', action.identity + ".BACKUP"]);
+                state = state.setIn(['options', action.identity], copy)
+            } else {
+                state = state.setIn(['options', action.identity], action.option)
+            }
+        }
+        return state;
+    },
+    [action.$types.SUBMITS](state, action) {
+        if (action.submits) {
+            const submits: Array<{identity: string, option: any}> = action.submits;
+            submits.forEach(submit => {
+                const identity = submit.identity;
+                const option = submit.option;
+                state = state.setIn(['options', identity], option)
+            })
         }
         return state;
     },
     [action.$types.REMOVE](state, action) {
         if (action.identity) {
+            const copy = state.getIn(['options', action.identity]);
             state = state.deleteIn(['options', action.identity]);
+            state = state.setIn(['options', action.identity + ".BACKUP"], copy);
         }
         return state;
     },

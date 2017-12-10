@@ -9,6 +9,7 @@ const $types = {
     PUSH: 'PUSH',
     DROP: 'DROP',
     SUBMIT: 'SUBMIT',
+    SUBMITS: 'SUBMITS',
     REMOVE: 'REMOVE'
 }
 
@@ -18,6 +19,7 @@ const actions = {
     PUSH: ['title', 'optionType', 'optionTarget', 'position'],
     DROP: [],
     SUBMIT: ['identity', 'option'],
+    SUBMITS: ['submits'],
     REMOVE: ['identity']
 }
 
@@ -31,6 +33,7 @@ interface $actions {
     PUSH(title: string, optionType: OptionType, optionTarget: OptionTarget, position: OptionPosition): any
     DROP(): any
     SUBMIT(identity: string, option: any): any
+    SUBMITS(submits: Array<{identity: string, option: any}>): any
     REMOVE(identity: string): any
 }
 

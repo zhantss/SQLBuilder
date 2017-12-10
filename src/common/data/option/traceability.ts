@@ -8,6 +8,7 @@ export interface Traceability {
 }
 
 export class TraceSelectItem {
+    index?: number
     alias: Alias
     item: AtomExpression
     private traceField: TraceField
@@ -27,6 +28,10 @@ export class TraceSelectItem {
 
     getTraceField() {
         return this.traceField;
+    }
+
+    setTraceField(traceField: TraceField) {
+        return this.traceField = traceField;
     }
 }
 
@@ -115,9 +120,17 @@ export class Trace {
             let des: Designation = null;
             for (; i < this.path.length; i++) {
                 des = this.map.get(this.path[i]);
+                if (des) {
+                    if (namer && this.map.has(namer)) {
+                        return new SelectItem(new Column(des.name), new Alias(this.map.get(namer).name));
+                    }
+                    return new SelectItem(new Column(des.name));
+                }
             }
-            if (des) {
-                return new SelectItem(new Column(des.name));
+            if (namer && this.map.has(namer)) {
+                return this.creater.item.alias ?
+                    new SelectItem(new Column(this.creater.item.alias.alias), new Alias(this.map.get(namer).name))
+                    : new SelectItem(this.creater.item.content.clone(), new Alias(this.map.get(namer).name));
             }
             return this.creater.item.alias ?
                 new SelectItem(new Column(this.creater.item.alias.alias))
@@ -151,6 +164,10 @@ export class Trace {
 
     pushMap(map: immutable.Map<string, Designation>) {
         this.map = this.map.merge(map);
+    }
+
+    setPath(path: Array<string>) {
+        this.path = [].concat(path);
     }
 
     clone(): Trace {

@@ -69,7 +69,7 @@ class JoinContent extends React.PureComponent<JoinContentProps, JoinContentState
     } {
         const { graphic, target, options } = this.props;
         const id: string = target.target.id;
-        const select = options.get(id);
+        // const select = options.get(id);
         const ori = id.substr(0, id.length - ".JOIN".length);
         const cnode = graphic.get(ori);
         let group = immutable.Map<string, Creater>();
@@ -103,16 +103,16 @@ class JoinContent extends React.PureComponent<JoinContentProps, JoinContentState
         })
     }
 
-    handleModeChange(identity: string, value_: any) {
+    /* handleModeChange(identity: string, value_: any) {
         const { actions, options } = this.props;
         let join = options.get(identity);
         let action: optionAction.$actions = actions.option;
         // const curr: Option.Join = Object.create(join);
         join.mode = value_;
-        action.SUBMIT(identity, join);
-    }
+        action.SUBMIT(identity, join, null);
+    } */
 
-    flush(key_: any, new_: Array<Translate>) {
+    /* flush(key_: any, new_: Array<Translate>) {
         // TODO ACTION OPTION[JOIN] SUBMIT
         const { actions, options } = this.props;
         let join = options.get(key_);
@@ -123,8 +123,8 @@ class JoinContent extends React.PureComponent<JoinContentProps, JoinContentState
             join = Object.create(join);
         }
         join.on = new_;
-        action.SUBMIT(key_, join);
-    }
+        action.SUBMIT(key_, join, null);
+    } */
 
     componentWillUnmount() {
         const { actions, options, target } = this.props;
@@ -172,6 +172,7 @@ class JoinContent extends React.PureComponent<JoinContentProps, JoinContentState
                     if (join == null) {
                         join = new Option.Join();
                     }
+                    const targetId = target.target.id.substr(0, addition.length - ".JOIN".length);
                     const nodeId = addition.substr(0, addition.length - ".JOIN".length);
                     const tab = <ScrollTab key={uuid.v4()} label={label} buttonStyle={buttonStyle}>
                         <div className={'option-join-tool'}>
@@ -192,13 +193,11 @@ class JoinContent extends React.PureComponent<JoinContentProps, JoinContentState
                         </div>
                         <ExpressionList
                             className={"option-join-exp"}
-                            addition={addition}
                             match={true}
                             expressions={join.on ? join.on : []}
-                            flush={this.flush.bind(this)}
                             group={group}
                             db={db}
-                            targetId={target.target.id}
+                            targetId={targetId}
                             nodeId={nodeId}
                             ref={x => {
                                 this.exps = this.exps.set(addition, x)

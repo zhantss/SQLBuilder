@@ -11,7 +11,8 @@ const $types = {
     DELETE: 'DELETE',
     DATA: 'DATA',
     FIRST : 'FIRST',
-    SELECT : 'SELECT'
+    SELECT : 'SELECT',
+    SELECTS : 'SELECTS'
 }
 
 const actions = {
@@ -20,7 +21,8 @@ const actions = {
     DELETE : ['nodeKey'],
     DATA: ['nodeKey', 'data'],
     FIRST : ['key'],
-    SELECT : ['nodeKey', 'tfs', 'appends', 'selects']
+    SELECT : ['nodeKey', 'tfs', 'appends'/* , 'selects' */],
+    SELECTS : ['selects']
 }
 
 actionTypeProcess(pre, $types);
@@ -32,7 +34,8 @@ interface $actions {
     DELETE(nodeKey: string) : any
     DATA(nodeKey: string, data: DataModel.Data.Data): any
     FIRST(key: string): any
-    SELECT(nodeKey: string, tfs: any, appends: any, selects: Array<string>)
+    SELECT(nodeKey: string, tfs: any, appends: any/* , selects: Array<string> */)
+    SELECTS(selects: Array<{nodeKey: string, tfs: any, appends: any}>)
 }
 
 export {

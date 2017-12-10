@@ -8,7 +8,7 @@ import IconButton from 'material-ui/IconButton'
 import MenuItem from 'material-ui/MenuItem'
 import TextField from 'material-ui/TextField'
 
-import { AutoSizer as RV_AutoSizer, Table as RV_Table, Column as RV_Column, SortDirection as ev_SortDirection, SortIndicator as RV_SortIndicator, SortDirection as RV_SortDirection } from 'react-virtualized'
+import { AutoSizer as RV_AutoSizer, Table as RV_Table, Column as RV_Column, SortDirection as ev_SortDirection, SortIndicator as RV_SortIndicator, SortDirection as RV_SortDirection, defaultTableRowRenderer as RV_defaultTableRowRenderer } from 'react-virtualized'
 import { SortableContainer, SortableElement, arrayMove } from 'react-sortable-hoc'
 
 import { SimpleIcon as Icon } from '../../../../icon'
@@ -24,19 +24,22 @@ import { Option } from '../../../../../common/data/option'
 import { Translate, ConnectAtomOption, GroupParentheses } from '../../../../../common/data/option/translate'
 import { TraceSelectItem, TraceField } from '../../../../../common/data/option/traceability'
 
-interface RichFieldListProps {
+interface ColumnListProps {
     addins: immutable.Map<string, TraceField>
     nodeId: string
     className?: any
 }
 
-interface RichFieldListState {
+interface ColumnListState {
     items: immutable.Map<number, TraceSelectItem>
-    exists: immutable.Map<string, number>
+    // exists: immutable.Map<string, number>
     unique: immutable.Map<string, number>
 }
 
-class RichFieldList extends React.PureComponent<RichFieldListProps, RichFieldListState> {
+const SortableTable = SortableContainer(RV_Table)
+const SortableTableRowRenderer = SortableElement(RV_defaultTableRowRenderer);
+
+class ColumnList extends React.PureComponent<ColumnListProps, ColumnListState> {
 
     constructor(props) {
         super(props);
@@ -44,62 +47,39 @@ class RichFieldList extends React.PureComponent<RichFieldListProps, RichFieldLis
     }
 
     initialization(addins: immutable.Map<string, TraceField>) {
-        return this.mapping(immutable.Map<number, TraceSelectItem>(), /* immutable.Map<string, number>(), */ immutable.Map<string, number>(), addins);
+        return this.mapping(immutable.Map<number, TraceSelectItem>(), /* immutable.Map<string, number>(),  */immutable.Map<string, number>(), addins);
     }
 
-    mapping(items: immutable.Map<number, TraceSelectItem>, /* exists: immutable.Map<string, number>,  */unique: immutable.Map<string, number>, addins: immutable.Map<string, TraceField>) {
+    mapping(items: immutable.Map<number, TraceSelectItem>, /* exists: immutable.Map<string, number>, */ unique: immutable.Map<string, number>, addins: immutable.Map<string, TraceField>) {
         // let { items, exists } = this.state;
         const { nodeId } = this.props;
         let tfs = addins.valueSeq().toArray();
-        let exists = immutable.Map<string, number>();
         for (let x = 0; x < tfs.length; x++) {
             const tf = tfs[x];
+            const ue = unique.get(tf.id);
+            if (ue != null) continue;
             const current = tf.trace.current(nodeId);
             if (current == null) continue;
-            
+
             let item: AtomExpression = null;
             let alias: Alias = null;
             if (nodeId == tf.trace.creater.id) {
                 item = current.content;
                 alias = current.alias;
-            } else if (current.alias && tf.trace.getDesignation(nodeId) == null) {
+            } else if (current.alias) {
                 item = new Column(current.alias.alias);
             } else {
                 item = current.content;
-                alias = current.alias;
             }
-            
+
             if (item == null) continue;
-            
-            const exid = exists.get(item.toString());
-            const exist = items.get(exid)
-            if (exist && (alias == null || alias.alias == item.toString())) {
-                let an = item.toString();
-                while (exists.get(an) != null) {
-                    an = GraphicParser.uniqueDesignation(an);
-                }
-                alias = new Alias(an, alias ? alias.as : false);
-            } else if (alias != null && items.get(exists.get(alias.alias)) != null) {
-                let an = alias.alias;
-                while (exists.get(an) != null) {
-                    an = GraphicParser.uniqueDesignation(an);
-                }
-                alias.alias = an;
-            }
-            const ue = unique.get(tf.id);
-            let size = ue != null ? ue : items.size;
+            let size = items.size;
             items = items.set(size, new TraceSelectItem(item, alias, tf));
-            if (alias != null) {
-                exists = exists.set(alias.alias, size);
-                unique = unique.set(tf.id, size);
-            } else {
-                exists = exists.set(item.toString(), size);
-                unique = unique.set(tf.id, size);
-            }
+            unique = unique.set(tf.id, size);
         }
         return {
             items: items,
-            exists: exists,
+            // exists: exists,
             unique: unique
         }
     }
@@ -110,7 +90,13 @@ class RichFieldList extends React.PureComponent<RichFieldListProps, RichFieldLis
 
     rowGetter({ index }) {
         const { items } = this.state;
-        return items.get(index);
+        const item = items.get(index);
+        item.index = index;
+        return item;
+    }
+
+    rowRenderer(props) {
+        return <SortableTableRowRenderer {...props} />
     }
 
     noRowsRenderer() {
@@ -127,40 +113,27 @@ class RichFieldList extends React.PureComponent<RichFieldListProps, RichFieldLis
         }
     }
 
-    private alias: immutable.Map<number, any> = immutable.Map<number, any>()
-
     public collect(): Array<TraceField> {
         const { nodeId } = this.props;
         const { items } = this.state;
         const upper: Array<TraceField> = [];
-        this.alias.entrySeq().forEach(e => {
-            const index: number = e[0];
-            const value: TextField = e[1];
-            const alias = value.getValue();
-            const item = items.get(index);
-            if (item) {
-                const tf = item.getTraceField();
-                if (alias != null && alias.length != 0) {
-                    tf.trace.setDesignation(nodeId, alias);
-                    if (tf.trace.creater.id == nodeId) {
-                        tf.trace.creater.item.alias = new Alias(alias);
-                    }
-                }
-                upper.push(tf);
-            }
-        })
+        for(let x = 0; x < items.size; x++) {
+            const item = items.get(x)
+            upper.push(item.getTraceField());
+        }
         return upper;
     }
 
-    private selectRender() {
+    private columnRender() {
         const { className } = this.props;
         const { items } = this.state;
         return <RV_AutoSizer disableHeight className={className}>
             {({ width }) => (
-                <RV_Table headerHeight={20} height={450} width={width} rowHeight={40}
+                <SortableTable headerHeight={20} height={450} width={width} rowHeight={40}
                     rowGetter={this.rowGetter.bind(this)}
                     rowCount={items.size}
                     rowClassName={this.rowClassName.bind(this)}
+                    rowRenderer={this.rowRenderer}
                     noRowsRenderer={this.noRowsRenderer}>
                     {/* <RV_Column
                         label={'index'}
@@ -175,23 +148,6 @@ class RichFieldList extends React.PureComponent<RichFieldListProps, RichFieldLis
                         width={200}
                     />
                     <RV_Column
-                        label={cn.option_select_tab_select_items_table_alias}
-                        // cellDataGetter={(row) => { const data: TraceSelectItem = row.rowData.value; const alias = data.item.alias ? data.item.alias : null; return <input value={alias ? alias.alias : ""} />}}
-                        cellRenderer={({ rowData, rowIndex }) => {
-                            const data: TraceSelectItem = rowData;
-                            const alias = data.alias ? data.alias : null;
-                            return <TextField defaultValue={alias ? alias.alias : ""} name={uuid.v4()} ref={x => { this.alias = this.alias.set(rowIndex, x); }} /* onChange={this.aliasChange.bind(this)} data-index={rowData.index} */ />
-                        }}
-                        dataKey={'alias'}
-                        width={200}
-                    />
-                    <RV_Column
-                        label={cn.option_select_tab_select_items_table_as}
-                        cellDataGetter={(row) => { const data: TraceSelectItem = row.rowData; return data.alias ? data.alias.as : false }}
-                        dataKey={'as'}
-                        width={60}
-                    />
-                    <RV_Column
                         label={cn.option_select_tab_select_items_table_from}
                         cellDataGetter={(row) => { const data: TraceSelectItem = row.rowData; return data.from() }}
                         dataKey={'from'}
@@ -203,7 +159,7 @@ class RichFieldList extends React.PureComponent<RichFieldListProps, RichFieldLis
                         dataKey={'datasource'}
                         width={600}
                     />
-                </RV_Table>)}
+                </SortableTable>)}
         </RV_AutoSizer>;
     }
 
@@ -211,7 +167,7 @@ class RichFieldList extends React.PureComponent<RichFieldListProps, RichFieldLis
         const { className } = this.props;
         return (
             <div className={className ? className : null}>
-                {this.selectRender()}
+                {this.columnRender()}
             </div>
         );
     }
@@ -219,4 +175,4 @@ class RichFieldList extends React.PureComponent<RichFieldListProps, RichFieldLis
 
 }
 
-export default RichFieldList
+export default ColumnList

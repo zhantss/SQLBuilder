@@ -15,11 +15,20 @@ function collectionTraceField(node): any {
     const path = node.get('path').toJS();
     const data = node.get('data');
     let tfs: immutable.Map<string, TraceField> = node.get('tfs');
+    let appends: immutable.Map<string, TraceField> = node.get('appends');
     let fs = null;
     if (data instanceof DataModel.Data.Source) {
         fs = data.fields;
     } else if (data instanceof DataModel.Data.Model) {
         fs = data.fields;
+    }
+    if(appends) {
+        appends = immutable.Map<string, TraceField>(appends.map((value, key) => {
+            let v = value;
+            v.trace.update(path);
+            return v;
+        }));
+        node = node.set('appends', appends);
     }
     if(tfs) {
         tfs = immutable.Map<string, TraceField>(tfs.map((value, key) => {
@@ -53,6 +62,21 @@ function collectionTraceField(node): any {
         })
     }
     return node.set('tfs', tfs);
+}
+
+function batchUpdatePath(state: any, update: any, parentPath: any) {
+    const key = update.get('key');
+    const path = parentPath.push(key);
+    update = update.set('path', path);
+    update = collectionTraceField(update);
+    state = state.setIn(['graphic', key], update);
+    const nodes = update.get('nodes');
+    if(nodes) {
+        nodes.forEach(n => {
+            state = batchUpdatePath(state, state.getIn(['graphic', n]), path);
+        })
+    }
+    return state;
 }
 
 const graphic = create(init, {
@@ -153,6 +177,13 @@ const graphic = create(init, {
                     }
                     currentNode = currentNode.set('path', path);
                     currentNode = collectionTraceField(currentNode);
+                    // update children nodes
+                    const cnodes = currentNode.get('nodes');
+                    if(cnodes) {
+                        cnodes.forEach(n => {
+                            state = batchUpdatePath(state, state.getIn(['graphic', n]), path);
+                        })
+                    }
                     return state.setIn(['graphic', action.parentKey, 'nodes'], nodes).setIn(['graphic', currentNode.get('key')], currentNode);
                 } else {
                     return state;
@@ -198,16 +229,35 @@ const graphic = create(init, {
     [action.$types.SELECT](state, action) {
         let nodeKey = action.nodeKey;
         let tfs = action.tfs;
-        let appends = action.appends;
-        let selects = action.selects;
+        let appends: immutable.Map<string, TraceField> = action.appends;
+        // let selects = action.selects;
         if(nodeKey && tfs && appends) {
             let node = state.getIn(['graphic', nodeKey]);
             if (node) {
                 node = node.set('tfs', tfs);
                 node = node.set('appends', appends);
-                node = node.set('selects', selects);
+                // node = node.set('selects', selects);
                 return state.setIn(['graphic', nodeKey], node);
             }
+        }
+        return state;
+    },
+    [action.$types.SELECTS](state, action) {
+        if(action.selects) {
+            const selects: Array<{nodeKey: string, tfs: any, appends: any}> = action.selects;
+            selects.forEach(select => {
+                let nodeKey = select.nodeKey;
+                let tfs = select.tfs;
+                let appends: immutable.Map<string, TraceField> = select.appends;
+                if(nodeKey && tfs && appends) {
+                    let node = state.getIn(['graphic', nodeKey]);
+                    if (node) {
+                        node = node.set('tfs', tfs);
+                        node = node.set('appends', appends);
+                        state = state.setIn(['graphic', nodeKey], node);
+                    }
+                }
+            })
         }
         return state;
     },

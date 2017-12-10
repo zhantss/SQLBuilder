@@ -6,7 +6,8 @@ import { connect2 } from '../../../../common/connect'
 import { OptionType, OptionTarget } from '../../../../common/data/option'
 import JoinContent from './join'
 import TableContent from './table'
-import SelectContent from './select'
+// import SelectContent from './select'
+import SelectContent from './select2'
 
 interface OptionContentProps {
     graphic?: any,

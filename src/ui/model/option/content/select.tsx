@@ -3,7 +3,8 @@ import * as classnames from 'classnames'
 import * as uuid from 'uuid'
 import * as immutable from 'immutable'
 
-import { Tabs as ScrollTabs, Tab as ScrollTab } from 'material-ui-scrollable-tabs/Tabs'
+import { Tabs as ScrollTabs, Tab as ScrollTab } from 'material-ui/Tabs'
+// import { Tabs as ScrollTabs, Tab as ScrollTab } from 'material-ui-scrollable-tabs/Tabs'
 
 import { cn } from '../../../text'
 import { connect2 } from '../../../../common/connect'
@@ -18,6 +19,9 @@ import { Translate, ConnectAtomOption, GroupParentheses } from '../../../../comm
 import Isolation from '../../../common/isolation/isolation'
 import MixingMutiSelect from './utils/mixingMutiSelect'
 import RichFieldList from './utils/richFieldList'
+import ColumnList from './utils/columnList'
+import ExpressionList from './utils/expressionList'
+import { SelectLogic, SelectNode } from './utils/selectLogic'
 import { TraceSelectItem, TraceField, Creater, DataSource, Trace } from '../../../../common/data/option/traceability'
 import { SelectItem, Alias } from '../../../../common/data/define/extra';
 
@@ -34,6 +38,9 @@ interface SelectContentState {
     selected: immutable.Map<string, TraceField>
     exists: immutable.Map<string, immutable.Map<string, string>>
     nodeId: string
+    targetId: string
+    group: immutable.Map<string, Creater>
+    db: immutable.Map<string, immutable.List<TraceField>>
 }
 
 class SelectContent extends React.PureComponent<SelectContentProps, SelectContentState> {
@@ -44,46 +51,56 @@ class SelectContent extends React.PureComponent<SelectContentProps, SelectConten
         this.state = this.initialization(target, props.options, props.graphic);
     }
 
+    private rich: RichFieldList
+    private where: ExpressionList
+    private having: ExpressionList
+
     initialization(target: OptionTarget, options, graphic) {
         const id: string = target.target.id;
-        const select = options.get(id);
+        const select: Option.Select = options.get(id);
         const ori = id.substr(0, id.length - ".SELECT".length);
         const csi = GraphicParser.collectSelectItems(ori, ori, graphic);
         const node = graphic.get(ori);
         let selected = immutable.Map<string, TraceField>();
         let exists = immutable.Map<string, immutable.Map<string, string>>();
-        if (node) {
+        let idb = null;
+        if (node && csi) {
             const key = node.get('key');
             const tfs = node.get('tfs');
             const appends = node.get('appends');
-            const selects = node.get('selects');
+            // const selects = node.get('selects');
+            const selects = select.selects;
             if (tfs && selects) {
                 let s = [];
                 selects.forEach(tfid => {
                     let tf: TraceField = tfs.get(tfid);
-                    if(tf == null && appends != null) tf = appends.get(tfid);
-                    if(tf != null) {
+                    if (tf == null && appends != null) tf = appends.get(tfid);
+                    if (tf != null) {
                         const cid = tf.trace.creater.id;
                         const cnode = graphic.get(cid);
-                        if(cid) {
+                        if (cid) {
                             const cpath = cnode.get('path');
-                            if(cpath && cpath.indexOf(key) != -1) {
+                            if (cpath && cpath.indexOf(key) != -1) {
                                 s.push(tf);
                             }
                         }
                     }
                 })
-                const process = this.processSelect(s, node.get('key'), exists, selected, graphic);
+                const process = this.processSelect(select, s, node.get('key'), exists, selected, graphic);
                 selected = process.selected;
                 exists = process.exists;
             }
+            idb = this.itemDBLoad(csi);
         }
         return {
             select: select,
             selectables: csi,
             selected: selected,
             exists: exists,
-            nodeId: ori
+            nodeId: ori,
+            targetId: id,
+            group: idb ? idb.group : null,
+            db: idb ? idb.db : null
         }
     }
 
@@ -122,8 +139,8 @@ class SelectContent extends React.PureComponent<SelectContentProps, SelectConten
             }
             return {
                 selected: selected.set(update.id, update).set(insert.id, insert),
-                exists: exists.setIn([group, update.trace.current(key).content.toString()], update)
-                    .setIn([group, unique], insert)
+                exists: exists.setIn([group, update.trace.current(key).content.toString()], update.id)
+                    .setIn([group, unique], insert.id)
             }
         }
         return {
@@ -154,19 +171,21 @@ class SelectContent extends React.PureComponent<SelectContentProps, SelectConten
 
     private select(selects: Array<TraceField>) {
         const { graphic } = this.props;
-        let { nodeId, exists, selected } = this.state;
-        this.setState(this.processSelect(selects, nodeId, exists, selected, graphic));
+        let { nodeId, exists, selected, select } = this.state;
+        this.setState(this.processSelect(select, selects, nodeId, exists, selected, graphic));
     }
 
     private processSelect(
+        select: Option.Select,
         selects: Array<TraceField>,
         nodeId: string,
         exists: immutable.Map<string, immutable.Map<string, string>>,
         selected: immutable.Map<string, TraceField>,
-        graphic: any) : {
+        graphic: any): {
+            select: Option.Select
             selected: immutable.Map<string, TraceField>,
             exists: immutable.Map<string, immutable.Map<string, string>>
-        }{
+        } {
         const node = graphic.get(nodeId);
         const key = node.get('key');
         const identity = node.get('identity');
@@ -202,15 +221,45 @@ class SelectContent extends React.PureComponent<SelectContentProps, SelectConten
                 }
             }
         }
+        select.selects = selected.keySeq().toArray();
         return {
+            select: select,
             selected: selected,
             exists: exists
         }
     }
 
+    private itemDBLoad(csi: any): {
+        group: immutable.Map<string, Creater>,
+        db: immutable.Map<string, immutable.List<TraceField>>
+    } {
+        let group = immutable.Map<string, Creater>();
+        let db = immutable.Map<string, immutable.List<TraceField>>();
+        Object.keys(csi).forEach(key => {
+            const list: Array<TraceField> = csi[key];
+            if (list && list.length > 0) {
+                const creater = list[0].trace.creater.clone();
+                creater.item = null;
+                group = group.set(creater.id, creater);
+            }
+            db = db.set(key, immutable.List<TraceField>(list));
+        })
+        return {
+            group, db
+        }
+    }
+
+    private groupby(selects: Array<TraceField>) {
+
+    }
+
+    private orderby(selects: Array<TraceField>) {
+
+    }
+
     componentWillUnmount() {
-        const { actions } = this.props;
-        let { nodeId, selected, selectables } = this.state;
+        const { actions, target } = this.props;
+        let { targetId, nodeId, selectables, select } = this.state;
         const upper = this.rich.collect();
         let tfs = immutable.Map<string, TraceField>();
         const tflist = selectables[nodeId];
@@ -230,33 +279,62 @@ class SelectContent extends React.PureComponent<SelectContentProps, SelectConten
             }
             selects.push(up.id);
         })
+        select.where = this.where.collectTranslate();
+        select.having = this.having.collectTranslate();
+        const oaction: optionAction.$actions = actions.option;
+        oaction.SUBMIT(targetId, select);
         const gaction: graphicAction.$actions = actions.graphic;
-        gaction.SELECT(nodeId, tfs, appends, selects);
+        gaction.SELECT(nodeId, tfs, appends/* , selects */);
     }
 
-    rich: RichFieldList
+    tabChange(a, b, c) {
+        debugger
+    }
 
     render() {
-        const { selectables, select, selected, nodeId } = this.state;
+        const { selectables, select, selected, targetId, nodeId, group, db } = this.state;
         const buttonStyle = { lineHeight: "48px" };
         return (
             <div className="option-select">
-                <ScrollTabs tabType={'scrollable-buttons'} className={'option-select-tabs'}>
+                <ScrollTabs /* tabType={'scrollable-buttons'} */ className={'option-select-tabs'} onChange={this.tabChange.bind(this)}>
                     <ScrollTab key={uuid.v4()} label={<span style={{ fontSize: "16px" }}>{cn.option_select_tab_select_items}</span>} buttonStyle={buttonStyle}>
                         <MixingMutiSelect name={uuid.v4()} text={cn.option_select_tab_select_items_select} items={selectables} nodeId={nodeId} select={this.select.bind(this)} />
                         <RichFieldList addins={selected ? selected : immutable.Map()} nodeId={nodeId} className={'option-select-rich-list'} ref={c => this.rich = c} />
                     </ScrollTab>
                     <ScrollTab key={uuid.v4()} label={<span style={{ fontSize: "16px" }}>{cn.option_select_tab_where}</span>} buttonStyle={buttonStyle}>
-
+                        <ExpressionList
+                            className={"option-select-exp"}
+                            match={true}
+                            expressions={select.where ? select.where : []}
+                            group={group}
+                            db={db}
+                            targetId={targetId}
+                            nodeId={nodeId}
+                            ref={x => {
+                                this.where = x;
+                            }}
+                        />
                     </ScrollTab>
                     <ScrollTab key={uuid.v4()} label={<span style={{ fontSize: "16px" }}>{cn.option_select_tab_groupby}</span>} buttonStyle={buttonStyle}>
-
+                        <MixingMutiSelect name={uuid.v4()} text={cn.option_select_tab_select_items_select} items={selectables} nodeId={nodeId} select={this.groupby.bind(this)} />
                     </ScrollTab>
                     <ScrollTab key={uuid.v4()} label={<span style={{ fontSize: "16px" }}>{cn.option_select_tab_orderby}</span>} buttonStyle={buttonStyle}>
-
+                        <MixingMutiSelect name={uuid.v4()} text={cn.option_select_tab_select_items_select} items={selectables} nodeId={nodeId} select={this.orderby.bind(this)} />
+                        <ColumnList addins={selected ? selected : immutable.Map()} nodeId={nodeId} className={'option-select-orderby-list'} ref={null} />
                     </ScrollTab>
                     <ScrollTab key={uuid.v4()} label={<span style={{ fontSize: "16px" }}>{cn.option_select_tab_having}</span>} buttonStyle={buttonStyle}>
-
+                        <ExpressionList
+                            className={"option-select-exp"}
+                            match={true}
+                            expressions={select.having ? select.having : []}
+                            group={group}
+                            db={db}
+                            targetId={targetId}
+                            nodeId={nodeId}
+                            ref={x => {
+                                this.having = x;
+                            }}
+                        />
                     </ScrollTab>
                 </ScrollTabs>
                 <div className="option-select-bottom-tool">

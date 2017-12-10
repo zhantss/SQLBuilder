@@ -1,3 +1,4 @@
+import * as immutable from 'immutable'
 import { JoinMode, SetOperationType } from '../define/set'
 import { Expression, Column, Value, Function, AtomExpression } from '../define/expression'
 import { DataModel } from '../'
@@ -35,15 +36,21 @@ export class Table implements Option {
 
 export class Select implements Option {
     key: string
-    items?: Array<SelectItem>
+    selects?: Array<string>
+    named?: immutable.Map<string, string>
     where?: Array<Translate>
-    groupby?: Array<Column>
+    groupby?: Array<string>
     having?: Array<Translate>
-    order?: Array<Column>
+    orderby?: Array<string>
     // TODO DISTINCT/EXCEPT/INTERSECT/EXPLAIN
     
     constructor(key: string) {
         this.key = key;
+        this.selects = new Array<string>();
+        this.named = immutable.Map<string, string>();
+        this.where = new Array<Translate>();
+        this.groupby = new Array<string>();
+        this.orderby = new Array<string>();
     }
 }
 

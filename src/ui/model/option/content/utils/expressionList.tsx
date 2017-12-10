@@ -23,13 +23,9 @@ import { Translate, Conditional, ConditionalParentheses, TraceTerm, OperatorTerm
 import { Creater, TraceField } from '../../../../../common/data/option/traceability';
 
 interface ExpressionListProps {
-    addition: any
     expressions: Array<Translate>
-    flush(key_: any, new_: Expression): any
     db: immutable.Map<string, immutable.List<TraceField>>
     group: immutable.Map<string, Creater>
-    // left: Array<any>
-    // right: Array<any>
     match?: boolean
     className?: any
     targetId: string
@@ -79,9 +75,11 @@ class ElementList {
         const translates = new Array<Translate>();
         if (this.nodes && data && targetId && nodeId) {
             data.toSeq().forEach((value, index) => {
-                const sq = [].concat([index]);
-                const translate = this.process(value, sq, data, targetId, nodeId);
-                if (translate) translates.push(translate);
+                if (index == 'number') { } else {
+                    const sq = [].concat([index]);
+                    const translate = this.process(value, sq, data, targetId, nodeId);
+                    if (translate) translates.push(translate);
+                }
             })
         }
         return translates;
@@ -94,7 +92,7 @@ class ElementList {
         const el = this.nodes.getIn([].concat(index).concat('data'));
         if (ori && el && !del) {
             if (el instanceof ConnectNode && ori instanceof Conditional) {
-                const connect_state = el.connect ? el.connect .collectValue() : null;
+                const connect_state = el.connect ? el.connect.collectValue() : null;
                 if (connect_state) ori.connect = new ConnectTerm(connect_state.index, connect_state);
 
                 const left_state = el.left ? el.left.collectValue() : null;
@@ -117,7 +115,7 @@ class ElementList {
                     if (dbv) {
                         const tf: TraceField = dbv.value;
                         const current = tf.trace.current(targetId);
-                        ori.right = new TraceTerm(tf.trace.creater.id, tf.id, current ? current.content.clone() : tf.trace.creater.item.content.clone(), left_state);
+                        ori.right = new TraceTerm(tf.trace.creater.id, tf.id, current ? current.content.clone() : tf.trace.creater.item.content.clone(), right_state);
                     } else if (custormv) {
                         ori.right = new TraceTerm(null, null, new Value(custormv), right_state);
                     }
@@ -171,7 +169,7 @@ class ExpressionList extends React.PureComponent<ExpressionListProps, Expression
     constructor(props) {
         super(props);
         this.state = {
-            data: this.translateLoad(this.props.expressions)
+            data: this.translateLoad(this.props)
         }
     }
 
@@ -179,7 +177,7 @@ class ExpressionList extends React.PureComponent<ExpressionListProps, Expression
 
     componentWillReceiveProps(nextProps) {
         this.setState({
-            data: this.translateLoad(nextProps.expressions)
+            data: this.translateLoad(nextProps)
         })
         // this.data = this.translateLoad(nextProps.expressions);
     }
@@ -191,18 +189,71 @@ class ExpressionList extends React.PureComponent<ExpressionListProps, Expression
     collectTranslate() {
         const { targetId, nodeId } = this.props;
         const { data } = this.state;
-        const tid = targetId.substr(0, targetId.length - ".JOIN".length);
-        const nid = nodeId.substr(0, nodeId.length - ".JOIN".length);
-        return this.elementRefs.combine(data, tid, nid);
+        return this.elementRefs.combine(data, targetId, nodeId);
     }
 
-    private translateLoad(expressions: Array<Translate>): immutable.Map<any, any> {
+    private translateLoad(props: ExpressionListProps): immutable.Map<any, any> {
+        const expressions = props.expressions;
         let data = immutable.Map<any, any>();
         for (let i = 0; i < expressions.length; i++) {
             const translate = expressions[i];
             data = data.merge(this.processTranslate(translate, [i]));
         }
-        data = data.setIn(['number'], expressions.length);
+        const match = props.match;
+        const group = props.group;
+        const db = props.db;
+        if (expressions.length == 0 && match && group && db) {
+            const id = props.targetId;
+            if (db.has(id)) {
+                const left = db.get(id);
+                const right = (() => {
+                    let list = immutable.List<TraceField>();
+                    db.toSeq().forEach((value, key) => {
+                        if (key != id) { list = immutable.List<TraceField>(list.concat(value)); }
+                    })
+                    return list;
+                })();
+                left.forEach(l => {
+                    const lc = l.trace.current(id);
+                    const lname = lc.content.toString()
+                    right.forEach(r => {
+                        const rc = r.trace.current(id);
+                        const rname = rc.content.toString();
+                        if (lname == rname) {
+                            data = data.setIn([data.size, 'data'],
+                                new Conditional(
+                                    new TraceTerm(
+                                        l.trace.creater.id,
+                                        l.id,
+                                        lc.content.clone(),
+                                        {
+                                            limit: l.trace.creater.id,
+                                            groupValue : { label: l.trace.creater.name, value: l.trace.creater },
+                                            dbValue: { label: "", value: l }
+                                        }
+                                    ),
+                                    new OperatorTerm(OptionOperator.Equal, { index: OptionOperator.Equal, text: OptionOperatorEnumToSQL(OptionOperator.Equal) }),
+                                    new TraceTerm(
+                                        r.trace.creater.id,
+                                        r.id,
+                                        rc.content.clone(),
+                                        {
+                                            limit: r.trace.creater.id,
+                                            groupValue : { label: r.trace.creater.name, value: r.trace.creater },
+                                            dbValue: { label: "", value: r }
+                                        }
+                                    ),
+                                    data.size > 0 ? new ConnectTerm(OptionConnect.AND, { index: OptionConnect.AND, text: OptionConncetEnumToSQL(OptionConnect.AND) }) : null
+                                )
+                            )
+                        }
+                    })
+                });
+                data = data.setIn(['number'], data.size);
+            }
+        } else {
+            data = data.setIn(['number'], expressions.length);
+        }
         return data;
     }
 
@@ -222,7 +273,6 @@ class ExpressionList extends React.PureComponent<ExpressionListProps, Expression
     }
 
     private newCAOTranslate(event) {
-        // const { expressions, addition, flush } = this.props;
         let { nodeId } = this.props;
         let { data } = this.state;
         const identity: string = event.currentTarget.dataset.identity;
@@ -241,7 +291,7 @@ class ExpressionList extends React.PureComponent<ExpressionListProps, Expression
                     new TraceTerm(null, null, null),
                     number > 0 ? new ConnectTerm(OptionConnect.AND) : null);
             data = data.setIn([size - 1, 'data'], el);
-            if(number == null || number < 0) number = 0;
+            if (number == null || number < 0) number = 0;
             data = data.setIn(['number'], number + 1);
         } else {
             const target = data.getIn(ary);
@@ -255,7 +305,7 @@ class ExpressionList extends React.PureComponent<ExpressionListProps, Expression
                         new TraceTerm(null, null, null),
                         number > 0 ? new ConnectTerm(OptionConnect.AND) : null);
                 data = data.setIn([].concat(ary).concat([size - 2, 'data']), el);
-                if(number == null || number < 0) number = 0;
+                if (number == null || number < 0) number = 0;
                 data = data.setIn([].concat(ary).concat(['number']), number + 1);
             } /* else {
                 const el = // new ConnectAtomOption(new AtomOption(null, OptionOperator.Equal, null), null)
@@ -273,7 +323,6 @@ class ExpressionList extends React.PureComponent<ExpressionListProps, Expression
     }
 
     private newGPTranslate(event) {
-        // const { expressions, addition, flush } = this.props;
         let { data } = this.state;
         const identity: string = event.currentTarget.dataset.identity;
         const ary: Array<number> = identity.split('-').map(x => {
@@ -285,10 +334,10 @@ class ExpressionList extends React.PureComponent<ExpressionListProps, Expression
             let number = data.getIn(['number']);
             const size = data.size;
             const el = // new GroupParentheses([], size > 0 ? OptionConnect.AND : null);
-            new ConditionalParentheses([], number > 0 ? new ConnectTerm(OptionConnect.AND) : null);
+                new ConditionalParentheses([], number > 0 ? new ConnectTerm(OptionConnect.AND) : null);
             data = data.setIn([size - 1, 'data'], el);
             data = data.setIn([size - 1, 'number'], 0);
-            if(number == null || number < 0) number = 0;
+            if (number == null || number < 0) number = 0;
             data = data.setIn(['number'], number + 1);
         } else {
             const target = data.getIn(ary);
@@ -296,10 +345,10 @@ class ExpressionList extends React.PureComponent<ExpressionListProps, Expression
                 let number = target.getIn(['number']);
                 const size = target.size;
                 const el = // new GroupParentheses([], size > 0 ? OptionConnect.AND : null);
-                new ConditionalParentheses([], number > 0 ? new ConnectTerm(OptionConnect.AND) : null);
+                    new ConditionalParentheses([], number > 0 ? new ConnectTerm(OptionConnect.AND) : null);
                 data = data.setIn([].concat(ary).concat([size - 2, 'data']), el);
                 data = data.setIn([].concat(ary).concat([size - 2, 'number']), 0);
-                if(number == null || number < 0) number = 0;
+                if (number == null || number < 0) number = 0;
                 data = data.setIn([].concat(ary).concat(['number']), number + 1);
             } /* else {
                 const el = // new ConnectAtomOption(new AtomOption(null, OptionOperator.Equal, null), null)
@@ -328,18 +377,18 @@ class ExpressionList extends React.PureComponent<ExpressionListProps, Expression
             if (target != null && number != null) {
                 data = data.setIn([].concat(ary).concat(['delete']), true);
                 data = data.setIn([].concat(cutp).concat(['number']), number - 1);
-                if(target instanceof Conditional || target instanceof ConditionalParentheses) {
+                if (target instanceof Conditional || target instanceof ConditionalParentheses) {
                     const connect = target.connect;
-                    if(connect == null || connect.connect == null) {
+                    if (connect == null || connect.connect == null) {
                         const cut = data.getIn([].concat(cutp));
                         const size = cut.size - (cutp.length == 0 ? 1 : 2);
-                        for(let i = ary[ary.length - 1] + 1; i < size; i++) {
+                        for (let i = ary[ary.length - 1] + 1; i < size; i++) {
                             const t = data.getIn([].concat(cutp).concat([i]));
-                            if(t == null) continue; 
+                            if (t == null) continue;
                             const del = t.get('delete');
-                            if(del) continue;
+                            if (del) continue;
                             const td = t.get('data');
-                            if(td instanceof Conditional || td instanceof ConditionalParentheses) {
+                            if (td instanceof Conditional || td instanceof ConditionalParentheses) {
                                 td.connect = null;
                                 data = data.setIn([].concat(cutp).concat([i, 'data']), td);
                                 break;
@@ -472,7 +521,7 @@ class ExpressionList extends React.PureComponent<ExpressionListProps, Expression
                                     : null
                             }
                         </div>
-                        {<span>GroupParentheses TODO</span>}
+                        {<span>{cn.option_exp_parentheses_node_text}</span>}
                     </div>
                 }
                 nestedItems={items}
@@ -531,8 +580,6 @@ class ExpressionList extends React.PureComponent<ExpressionListProps, Expression
                             init={tranlate.left.state}
                             db={db}
                             group={group}
-                            targetId={targetId}
-                            nodeId={nodeId}
                             ref={x => {
                                 const node: ElementTreeNode = this.elementRefs.getElementNode(identity);
                                 if (node == null) {
@@ -568,8 +615,6 @@ class ExpressionList extends React.PureComponent<ExpressionListProps, Expression
                             init={tranlate.right.state}
                             db={db}
                             group={group}
-                            targetId={targetId}
-                            nodeId={nodeId}
                             ref={x => {
                                 const node: ElementTreeNode = this.elementRefs.getElementNode(identity);
                                 if (node == null) {

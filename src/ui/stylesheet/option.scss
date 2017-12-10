@@ -98,7 +98,7 @@
                 border-bottom: 1px solid #ededed;
             }
             .option-select-tabs {
-                max-width: 600px;
+                min-width: 900px;
                 overflow-y: auto;
             }
             .option-select-bottom-tool {
@@ -169,6 +169,42 @@
 }
 
 .option-join-exp {
+    max-height: 600px;
+    overflow-y: auto;
+    .expression-item {
+        >div {
+            vertical-align: top !important;
+        }
+        >span {
+            height: 48px;
+            line-height: 48px;
+            display: inline-block;
+        }
+        .item-btn {
+            width: 48px;
+            display: inline-block;
+            button {}
+        }
+        .item-andor {
+            width: 48px;
+            display: inline-block;
+            margin-left: 15px;
+        }
+    }
+    .list-add-btn {
+        button {
+            margin-right: 15px !important;
+            height: 36px !important;
+            /* min-width: 60px !important; */
+            padding: 0 !important;
+            border-radius: 2px !important;
+            background-color: rgb(255, 255, 255) !important;
+            box-sizing: border-box !important;
+        }
+    }
+}
+
+.option-select-exp {
     max-height: 600px;
     overflow-y: auto;
     .expression-item {

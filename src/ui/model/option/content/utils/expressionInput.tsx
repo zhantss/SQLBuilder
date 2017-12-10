@@ -17,8 +17,6 @@ interface ExpressionInputProps {
     init?: any
     db: immutable.Map<string, immutable.List<TraceField>>
     group: immutable.Map<string, Creater>
-    targetId: string
-    nodeId: string
 }
 
 interface ExpressionInputState {
@@ -135,7 +133,7 @@ class ExpressionInput extends React.PureComponent<ExpressionInputProps, Expressi
     }
 
     private dbItemsToSelects() {
-        const { db, nodeId } = this.props;
+        const { db } = this.props;
         const { limit } = this.state;
         const selects = [];
         if (limit) {
@@ -171,14 +169,14 @@ class ExpressionInput extends React.PureComponent<ExpressionInputProps, Expressi
     }
 
     render() {
-        const { name, db, group, className, nodeId } = this.props;
+        const { name, db, group, className } = this.props;
         const { limit, groupValue, dbValue } = this.state;
         return <div className={classnames("expression-input", className)}>
             <SuperSelectField
                 name={name + "_group"}
                 // multiple={true}
                 checkPosition='left'
-                hintText={cn.option_join_exp_on_group}
+                hintText={cn.option_exp_select_group}
                 onChange={this.groupSelection.bind(this)}
                 value={groupValue}
                 showAutocompleteThreshold={1}
@@ -188,7 +186,7 @@ class ExpressionInput extends React.PureComponent<ExpressionInputProps, Expressi
                 underlineStyle={{ bottom: "8px" }}
                 selectionsRenderer={(value) => { return <div style={{ height: "42px", lineHeight: "42px", padding: "0 10px" }}>{value ? value.label : ""}</div>; }}
                 elementHeight={48}
-                hintTextAutocomplete={cn.option_join_exp_on_auto_search}
+                hintTextAutocomplete={cn.option_exp_on_auto_search}
             // keepSearchOnSelect={true}
             >
                 {this.groupItemsToSelects()}
@@ -198,7 +196,7 @@ class ExpressionInput extends React.PureComponent<ExpressionInputProps, Expressi
                     name={name + "_db"}
                     // multiple={true}
                     checkPosition='left'
-                    hintText={cn.option_join_exp_on_db}
+                    hintText={cn.option_exp_select_db}
                     onChange={this.dbSelection.bind(this)}
                     value={dbValue}
                     showAutocompleteThreshold={1}
@@ -221,7 +219,7 @@ class ExpressionInput extends React.PureComponent<ExpressionInputProps, Expressi
                         return <div style={{ height: "42px", lineHeight: "42px", padding: "0 10px" }}>{text}</div>;
                     }}
                     elementHeight={62}
-                    hintTextAutocomplete={cn.option_join_exp_on_auto_search}
+                    hintTextAutocomplete={cn.option_exp_on_auto_search}
                 // keepSearchOnSelect={true}
                 >
                     {this.dbItemsToSelects()}
@@ -231,7 +229,7 @@ class ExpressionInput extends React.PureComponent<ExpressionInputProps, Expressi
                     style={{ width: "50%", verticalAlign: "middle" }} 
                     onChange={this.handleCustomExp.bind(this)} 
                     value={this.state.customValue ? this.state.customValue : ""} 
-                    hintText={cn.option_join_exp_on_db_text_hint} />
+                    hintText={cn.option_exp_custom_text_hint} />
             }
         </div>
     }
