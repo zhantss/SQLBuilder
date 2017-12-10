@@ -13,7 +13,7 @@ module.exports = {
         polyfill: ['babel-polyfill'],
         vendor: ['react', 'react-dom', 'redux', 'react-redux', 'react-router', 'react-router-dom', 'react-router-redux', 'react-transition-group'],
         plugin: ['redux-saga', 'redux-logger', 'immutable', 'redux-immutable', 'react-dnd', 'react-dnd-html5-backend'],
-        ui: ['react-tap-event-plugin', 'material-ui', 'material-design-icons', 'material-ui-scrollable-tabs', 'react-virtualized', 'react-sortable-hoc'],
+        ui: ['react-tap-event-plugin', 'material-ui', 'material-design-icons', 'react-virtualized', 'react-sortable-hoc'],
         tool: ['axios', 'bowser', 'moment', 'classnames', 'uuid', 'alasql'],
         sqlbuilder: ['./src/index.tsx', 'webpack-hot-middleware/client?path=/__webpack_hmr&timeout=20000']
     },

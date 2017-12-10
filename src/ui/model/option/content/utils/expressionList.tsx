@@ -229,7 +229,8 @@ class ExpressionList extends React.PureComponent<ExpressionListProps, Expression
                                         {
                                             limit: l.trace.creater.id,
                                             groupValue : { label: l.trace.creater.name, value: l.trace.creater },
-                                            dbValue: { label: "", value: l }
+                                            dbValue: { label: "", value: l },
+                                            customValue: null
                                         }
                                     ),
                                     new OperatorTerm(OptionOperator.Equal, { index: OptionOperator.Equal, text: OptionOperatorEnumToSQL(OptionOperator.Equal) }),
@@ -240,7 +241,8 @@ class ExpressionList extends React.PureComponent<ExpressionListProps, Expression
                                         {
                                             limit: r.trace.creater.id,
                                             groupValue : { label: r.trace.creater.name, value: r.trace.creater },
-                                            dbValue: { label: "", value: r }
+                                            dbValue: { label: "", value: r },
+                                            customValue: null
                                         }
                                     ),
                                     data.size > 0 ? new ConnectTerm(OptionConnect.AND, { index: OptionConnect.AND, text: OptionConncetEnumToSQL(OptionConnect.AND) }) : null

@@ -121,8 +121,8 @@
 }
 
 .option-select-rich-list {
-    margin: 20px 10px 0 10px;
-
+    margin: 20px 5px 0 5px;
+    box-sizing: border-box;
     .no-selected-field {
         position: absolute;
         top: 0;
@@ -135,15 +135,66 @@
         font-size: 1em;
         color: #bdbdbd;
     }
-    
     .rv-table-header-row {
         border-bottom: 1px solid #e0e0e0;
     }
-    
     .rv-table-even-row {
         border-bottom: 1px solid #e0e0e0;
     }
-    
+    .rv-table-odd-row {
+        border-bottom: 1px solid #e0e0e0;
+        background-color: #fafafa;
+    }
+}
+
+.option-select-orderby-list {
+    margin: 20px 5px 0 5px;
+    box-sizing: border-box;
+    .no-selected-field {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1em;
+        color: #bdbdbd;
+    }
+    .rv-table-header-row {
+        border-bottom: 1px solid #e0e0e0;
+    }
+    .rv-table-even-row {
+        border-bottom: 1px solid #e0e0e0;
+    }
+    .rv-table-odd-row {
+        border-bottom: 1px solid #e0e0e0;
+        background-color: #fafafa;
+    }
+}
+
+.option-select-groupby-list {
+    margin: 20px 5px 0 5px;
+    box-sizing: border-box;
+    .no-selected-field {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1em;
+        color: #bdbdbd;
+    }
+    .rv-table-header-row {
+        border-bottom: 1px solid #e0e0e0;
+    }
+    .rv-table-even-row {
+        border-bottom: 1px solid #e0e0e0;
+    }
     .rv-table-odd-row {
         border-bottom: 1px solid #e0e0e0;
         background-color: #fafafa;
@@ -245,4 +296,8 @@
     position: relative;
     width: 400px;
     margin-left: 10px;
+}
+
+.sortable-helper {
+    z-index: 1001 !important;
 }

@@ -5,8 +5,8 @@ import { DataModel } from '../'
 import { SQLParser } from '../utils'
 import { Translate } from './translate'
 import { SelectableExpression } from './selectable'
-import { TraceSelectItem } from './traceability'
-import { SelectItem } from '../define/extra';
+import { TraceSelectItem, TraceField } from './traceability'
+import { SelectItem, OrderMode } from '../define/extra';
 
 export interface Option {
 
@@ -34,23 +34,104 @@ export class Table implements Option {
     } */
 }
 
+export function arrayToOrder(obis: Array<OrderByItem>) {
+    const order = new Order();
+    obis.forEach(obi => {
+        order.push(obi)
+    })
+    return order;
+}
+
+export class Order {
+    private items?: immutable.Map<string, OrderByItem>
+    private order: immutable.List<string>
+
+    constructor() {
+        this.items = immutable.Map<string, OrderByItem>();
+        this.order = immutable.List<string>();
+    }
+
+    push(item: OrderByItem) {
+        if (this.items.has(item.id)) {
+            const index = this.order.findIndex(o => { return o == item.id });
+            this.order = this.order.delete(index);
+        } else {
+            this.items = this.items.set(item.id, item);
+            this.order = this.order.push(item.id);
+        }
+    }
+
+    has(id: string): boolean {
+        return this.items.has(id);
+    }
+
+    sequence() : immutable.List<OrderByItem>{
+        const sequence = immutable.List<OrderByItem>();
+        return immutable.List<OrderByItem>(this.order.toArray().map(o => {
+            return this.items.get(o);
+        }))
+    }
+}
+
+export class OrderByItem {
+    id: string
+    field: TraceField
+    desc: OrderMode
+    constructor(field: TraceField, desc?: OrderMode) {
+        this.id = field.id;
+        this.field = field;
+        this.desc = desc == null ? OrderMode.ASC : desc;
+    }
+}
+
+export class Group {
+    private items?: immutable.Map<string, TraceField>
+    private group: immutable.List<string>
+
+    constructor() {
+        this.items = immutable.Map<string, TraceField>();
+        this.group = immutable.List<string>();
+    }
+
+    push(item: TraceField) {
+        if (this.items.has(item.id)) {
+            const index = this.group.findIndex(o => { return o == item.id });
+            this.group = this.group.delete(index);
+        } else {
+            this.items = this.items.set(item.id, item);
+            this.group = this.group.push(item.id);
+        }
+    }
+
+    has(id: string): boolean {
+        return this.items.has(id);
+    }
+
+    sequence() : immutable.List<TraceField>{
+        const sequence = immutable.List<TraceField>();
+        return immutable.List<TraceField>(this.group.toArray().map(o => {
+            return this.items.get(o);
+        }))
+    }
+}
+
 export class Select implements Option {
     key: string
     selects?: Array<string>
     named?: immutable.Map<string, string>
     where?: Array<Translate>
-    groupby?: Array<string>
+    groupby?: Group
     having?: Array<Translate>
-    orderby?: Array<string>
+    orderby?: Order
     // TODO DISTINCT/EXCEPT/INTERSECT/EXPLAIN
-    
+
     constructor(key: string) {
         this.key = key;
         this.selects = new Array<string>();
         this.named = immutable.Map<string, string>();
         this.where = new Array<Translate>();
-        this.groupby = new Array<string>();
-        this.orderby = new Array<string>();
+        this.groupby = new Group();
+        this.orderby = new Order();
     }
 }
 

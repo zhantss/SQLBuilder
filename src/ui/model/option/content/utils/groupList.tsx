@@ -13,6 +13,7 @@ import { SortableContainer, SortableElement, arrayMove } from 'react-sortable-ho
 
 import { SimpleIcon as Icon } from '../../../../icon'
 import Input from './input'
+import Select from './select'
 
 import { cn } from '../../../../text'
 import { connect2 } from '../../../../../common/connect'
@@ -23,59 +24,66 @@ import { Alias } from '../../../../../common/data/define/extra'
 import { Option } from '../../../../../common/data/option'
 import { Translate, ConnectAtomOption, GroupParentheses } from '../../../../../common/data/option/translate'
 import { TraceSelectItem, TraceField } from '../../../../../common/data/option/traceability'
+import { Group } from '../../../../../common/data/option/option'
 
-interface ColumnListProps {
-    addins: immutable.Map<string, TraceField>
+interface GroupListProps {
+    // addins: immutable.Map<string, TraceField>
+    group: Group
     nodeId: string
     className?: any
 }
 
-interface ColumnListState {
+interface GroupListState {
     items: immutable.Map<number, TraceSelectItem>
     // exists: immutable.Map<string, number>
     unique: immutable.Map<string, number>
 }
 
-const SortableTable = SortableContainer(RV_Table)
-const SortableTableRowRenderer = SortableElement(RV_defaultTableRowRenderer);
+const SortableTable = SortableContainer(RV_Table, { withRef: true })
+const SortableTableRowRenderer = SortableElement((props) => {
+    return RV_defaultTableRowRenderer({ index: props.inx, ...props });
+});
 
-class ColumnList extends React.PureComponent<ColumnListProps, ColumnListState> {
+class GroupList extends React.PureComponent<GroupListProps, GroupListState> {
 
     constructor(props) {
         super(props);
-        this.state = this.initialization(this.props.addins);
+        this.state = this.initialization(this.props.group);
     }
 
-    initialization(addins: immutable.Map<string, TraceField>) {
-        return this.mapping(immutable.Map<number, TraceSelectItem>(), /* immutable.Map<string, number>(),  */immutable.Map<string, number>(), addins);
+    initialization(group: Group) {
+        return this.mapping(immutable.Map<number, TraceSelectItem>(), /* immutable.Map<string, number>(),  */immutable.Map<string, number>(), group);
     }
 
-    mapping(items: immutable.Map<number, TraceSelectItem>, /* exists: immutable.Map<string, number>, */ unique: immutable.Map<string, number>, addins: immutable.Map<string, TraceField>) {
+    mapping(items: immutable.Map<number, TraceSelectItem>, /* exists: immutable.Map<string, number>, */ unique: immutable.Map<string, number>, group: Group) {
         // let { items, exists } = this.state;
         const { nodeId } = this.props;
-        let tfs = addins.valueSeq().toArray();
-        for (let x = 0; x < tfs.length; x++) {
-            const tf = tfs[x];
-            const ue = unique.get(tf.id);
+        let groups = group.sequence().toArray();
+        for (let x = 0; x < groups.length; x++) {
+            const gitem = groups[x];
+            const ue = unique.get(gitem.id);
             if (ue != null) continue;
-            const current = tf.trace.current(nodeId);
+            const current = gitem.trace.current(nodeId);
             if (current == null) continue;
 
             let item: AtomExpression = null;
             let alias: Alias = null;
-            if (nodeId == tf.trace.creater.id) {
+            if (nodeId == gitem.trace.creater.id) {
                 item = current.content;
                 alias = current.alias;
-            } else if (current.alias) {
+            } else if (current.alias && gitem.trace.getDesignation(nodeId) == null) {
                 item = new Column(current.alias.alias);
             } else {
                 item = current.content;
+                alias = current.alias;
             }
 
             if (item == null) continue;
             let size = items.size;
-            items = items.set(size, new TraceSelectItem(item, alias, tf));
-            unique = unique.set(tf.id, size);
+            const tsi = new TraceSelectItem(item, alias, gitem);
+            tsi.index = size;
+            items = items.set(size, tsi);
+            unique = unique.set(gitem.id, size);
         }
         return {
             items: items,
@@ -85,17 +93,32 @@ class ColumnList extends React.PureComponent<ColumnListProps, ColumnListState> {
     }
 
     componentWillReceiveProps(nextProps) {
-        this.setState(this.mapping(this.state.items, /* this.state.exists,  */this.state.unique, nextProps.addins));
+        this.setState(this.mapping(this.state.items, /* this.state.exists,  */this.state.unique, nextProps.group));
     }
 
     rowGetter({ index }) {
         const { items } = this.state;
-        const item = items.get(index);
-        item.index = index;
-        return item;
+        return items.get(index);
+    }
+
+    onSortEnd({ oldIndex, newIndex }) {
+        let { items, unique } = this.state;
+        const oe = items.get(oldIndex);
+        const ne = items.get(newIndex);
+        if (oe && ne) {
+            items = items.set(newIndex, oe);
+            unique = unique.set(oe.getTraceField().id, newIndex);
+            items = items.set(oldIndex, ne);
+            unique = unique.set(ne.getTraceField().id, oldIndex);
+        }
+        this.setState({
+            items, unique
+        })
     }
 
     rowRenderer(props) {
+        const inx = props.index;
+        props = { inx: inx, ...props }
         return <SortableTableRowRenderer {...props} />
     }
 
@@ -113,15 +136,18 @@ class ColumnList extends React.PureComponent<ColumnListProps, ColumnListState> {
         }
     }
 
-    public collect(): Array<TraceField> {
+    // private desc: immutable.Map<string, any> = immutable.Map<string, any>()
+
+    public collect(): Group {
         const { nodeId } = this.props;
         const { items } = this.state;
+        const group = new Group();
         const upper: Array<TraceField> = [];
-        for(let x = 0; x < items.size; x++) {
-            const item = items.get(x)
-            upper.push(item.getTraceField());
+        for (let x = 0; x < items.size; x++) {
+            const item = items.get(x);
+            group.push(item.getTraceField());
         }
-        return upper;
+        return group;
     }
 
     private columnRender() {
@@ -130,11 +156,15 @@ class ColumnList extends React.PureComponent<ColumnListProps, ColumnListState> {
         return <RV_AutoSizer disableHeight className={className}>
             {({ width }) => (
                 <SortableTable headerHeight={20} height={450} width={width} rowHeight={40}
+                    onSortEnd={this.onSortEnd.bind(this)}
                     rowGetter={this.rowGetter.bind(this)}
                     rowCount={items.size}
                     rowClassName={this.rowClassName.bind(this)}
                     rowRenderer={this.rowRenderer}
-                    noRowsRenderer={this.noRowsRenderer}>
+                    noRowsRenderer={this.noRowsRenderer}
+                    gridStyle={{ outline: 0 }}
+                    helperClass='sortable-helper'
+                >
                     {/* <RV_Column
                         label={'index'}
                         cellDataGetter={(row) => { return row.rowData.index; }}
@@ -175,4 +205,4 @@ class ColumnList extends React.PureComponent<ColumnListProps, ColumnListState> {
 
 }
 
-export default ColumnList
+export default GroupList

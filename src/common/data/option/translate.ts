@@ -1,4 +1,6 @@
 import { Expression, Option, Connect, Parentheses, AtomExpression, OptionOperator, OptionConnect } from '../define/expression'
+import { ExpressionInputState } from '../../../ui/model/option/content/utils/expressionInput';
+import { TraceField } from './traceability';
 
 export interface Translate extends Expression {
 
@@ -8,8 +10,8 @@ export class TraceTerm {
     nodeId: string
     traceId: string
     term: AtomExpression
-    state?: any
-    constructor(nodeId: string, traceId: string, term: AtomExpression, state?: any) {
+    state?: ExpressionInputState
+    constructor(nodeId: string, traceId: string, term: AtomExpression, state?: ExpressionInputState) {
         this.nodeId = nodeId;
         this.traceId = traceId;
         this.term = term;
@@ -168,8 +170,8 @@ function slice(exp: Expression, connect: OptionConnect): Array<Translate> {
         const econnect = exp.connect;
         const right = exp.right;
         return []
-                .concat(slice(left, connect))
-                .concat(slice(right, econnect));
+            .concat(slice(left, connect))
+            .concat(slice(right, econnect));
     } else if (exp instanceof Option) {
         return [new ConnectAtomOption(AtomPaste(exp), connect)]
     } else if (exp instanceof Parentheses) {
@@ -187,4 +189,38 @@ export function translateSlice(expression: Expression): Array<Translate> {
         return null;
     }
     return slice(expression, null);
+}
+
+function extractField(term: TraceTerm): TraceField {
+    if (term.state.customValue) {
+        return null;
+    }
+    return term.state.dbValue.value;
+}
+
+function extractTranslate(translate: Translate): Array<TraceField> {
+    let fields = [];
+    if (translate instanceof ConditionalParentheses) {
+        const ts = translate.content;
+        ts.forEach(t => {
+            fields = fields.concat(extractTranslate(t));
+        })
+    } else if (translate instanceof Conditional) {
+        const left = extractField(translate.left);
+        const right = extractField(translate.right);
+        if(left) fields.push(left);
+        if(right) fields.push(right);
+    }
+    return fields;
+}
+
+export function translateExtract(translates: Array<Translate>): Array<TraceField> {
+    if (translates == null) {
+        return null;
+    }
+    let fields = [];
+    translates.forEach(translate => {
+        fields = fields.concat(extractTranslate(translate));
+    });
+    return fields;
 }

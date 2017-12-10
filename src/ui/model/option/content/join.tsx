@@ -10,7 +10,7 @@ import MenuItem from 'material-ui/MenuItem'
 import RaisedButton from 'material-ui/RaisedButton'
 import IconButton from 'material-ui/IconButton'
 import { DropDownMenuProps } from 'material-ui'
-import { Tabs as ScrollTabs, Tab as ScrollTab } from 'material-ui-scrollable-tabs/Tabs'
+import { Tabs as ScrollTabs, Tab as ScrollTab } from 'material-ui/Tabs'
 
 import { SimpleIcon as Icon } from '../../../icon'
 
@@ -222,7 +222,7 @@ class JoinContent extends React.PureComponent<JoinContentProps, JoinContentState
         />
         return (
             <div className="option-join">
-                <ScrollTabs tabType={`scrollable`}>
+                <ScrollTabs /* tabType={`scrollable`} */>
                     {this.tabs(toggle)}
                 </ScrollTabs>
                 <div className="option-join-bottom-tool">

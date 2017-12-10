@@ -16,6 +16,8 @@ export class Alias {
     }
 }
 
+export const ordermodes = ['ASC', 'DESC'];
+
 export enum OrderMode {
     ASC, DESC
 }

@@ -19,7 +19,7 @@ interface ExpressionInputProps {
     group: immutable.Map<string, Creater>
 }
 
-interface ExpressionInputState {
+export interface ExpressionInputState {
     limit: string
     groupValue: any
     dbValue: any
