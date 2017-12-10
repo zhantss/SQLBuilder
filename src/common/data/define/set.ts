@@ -30,16 +30,20 @@ export class Join {
     using?: Array<string>
 
 
-    constructor(fromItem: FromItem, mode: JoinMode, on: Expression, using: Array<string>) {
+    /* constructor(fromItem: FromItem, mode: JoinMode, on: Expression, using: Array<string>) {
         this.fromItem = fromItem;
         this.mode = mode;
         this.on = on;
         this.using = using;
+    } */
+
+    toString() {
+        if(this.mode == JoinMode.NATURAL || this.mode == null || this.on == null) {
+            return this.fromItem.toString();
+        }
+        return modes[this.mode] + " JOIN " + this.fromItem.toString() + " ON " + this.on.toString();
     }
 
-    sql(): string {
-        return null;
-    }
 }
 
 export class SetOperators {

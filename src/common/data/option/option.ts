@@ -76,11 +76,11 @@ export class Order {
 export class OrderByItem {
     id: string
     field: TraceField
-    desc: OrderMode
-    constructor(field: TraceField, desc?: OrderMode) {
+    mode: OrderMode
+    constructor(field: TraceField, mode?: OrderMode) {
         this.id = field.id;
         this.field = field;
-        this.desc = desc == null ? OrderMode.ASC : desc;
+        this.mode = mode == null ? OrderMode.ASC : mode;
     }
 }
 

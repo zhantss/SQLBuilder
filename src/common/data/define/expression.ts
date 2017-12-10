@@ -78,7 +78,7 @@ export class Parentheses implements Expression {
 
     toString() {
         let s = this.op ? this.op + " " : "";
-        s = s + this.content.toString();
+        s = s + "(" + this.content.toString() + ")";
         return s;
     }
 }
@@ -118,6 +118,10 @@ export class AllColumn extends Column {
         super("*", table);
     }
 
+    toString(): string {
+        return super.toString()
+    }
+
     clone() {
         return new AllColumn(this.table);
     }
@@ -146,6 +150,10 @@ export class Function implements AtomExpression {
     constructor(fun: string, props?: Array<string>) {
         this.fun = fun;
         this.props = props;
+    }
+
+    toString() {
+        return this.fun + "(" + (this.props ? this.props.join(", ") : "") + ")";
     }
 
     clone() {

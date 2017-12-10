@@ -11,6 +11,7 @@ export class SelectNode {
     identity: string
     name: string
     path: immutable.List<string>
+    node: any
     nodes: immutable.List<string>
     tfs: immutable.Map<string, TraceField>
     appends: immutable.Map<string, TraceField>
@@ -23,6 +24,7 @@ export class SelectNode {
     anamed: immutable.Map<string, string>
 
     constructor(node: any, select: Option.Select) {
+        this.node = node;
         const key = node.get('key');
         const identity = node.get('identity');
         const name = node.get('name');
@@ -51,11 +53,15 @@ export class SelectNode {
                 /* if(clone.trace.creater.id == key) {
                     clone.trace.setPath(path.toArray());
                 } */
-                this.appends = this.appends.set(inx, clone);
+                if (tf.trace.creater.id == this.id || this.nodes.findIndex(n => n == tf.trace.creater.id) != -1) {
+                    this.appends = this.appends.set(inx, clone);
+                }
             })
         }
         this.selects = immutable.Map<string, boolean>();
-        select.selects.forEach(s => { this.selects = this.selects.set(s, true); })
+        select.selects.forEach(s => {
+            this.selects = this.selects.set(s, true);
+        })
         // this.named = immutable.Map<string, string>(select.named);
         this.named = immutable.Map<string, string>();
         this.anamed = immutable.Map<string, string>();

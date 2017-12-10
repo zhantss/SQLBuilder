@@ -8,6 +8,7 @@ export const model_header_btn_sub = "创建子查询"
 export const model_header_btn_union = "创建集合查询"
 export const model_header_btn_cancel = "撤销"
 export const model_header_btn_redo = "重做"
+export const model_test_sql = "生成并测试SQL"
 
 export const option_title_join = "关联"
 export const option_title_setop = "集合"
@@ -41,3 +42,5 @@ export const option_select_tab_select_items_table_from = "来源"
 export const option_select_tab_select_items_table_datasource = "数据源"
 export const option_select_tab_select_items_table_no_row = "请添加需要查询的字段"
 export const option_select_tab_order_items_table_des = "排序"
+
+export const result_sql_title = "测试结果"

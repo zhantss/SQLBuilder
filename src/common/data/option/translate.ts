@@ -1,4 +1,5 @@
-import { Expression, Option, Connect, Parentheses, AtomExpression, OptionOperator, OptionConnect } from '../define/expression'
+import * as immutable from 'immutable'
+import { Expression, Option, Connect, Parentheses, AtomExpression, OptionOperator, OptionConnect, Column } from '../define/expression'
 import { ExpressionInputState } from '../../../ui/model/option/content/utils/expressionInput';
 import { TraceField } from './traceability';
 
@@ -191,7 +192,93 @@ export function translateSlice(expression: Expression): Array<Translate> {
     return slice(expression, null);
 }
 
+function processItem(term: TraceTerm, nodeId: string, talias: immutable.Map<string, string>) {
+    const state = term.state;
+    if(state == null) {
+        return null;
+    }
+    if (state && state.customValue) {
+        return term.term;
+    }
+
+    if (state.dbValue) {
+        const db: TraceField = state.dbValue.value;
+        const next = db.trace.next(nodeId);
+        if (next && term.term instanceof Column) {
+            if (next.length == 0) {
+                term.term.table = "T";
+            } else if (talias.has(next[0])) {
+                term.term.table = talias.get(next[0]);
+            }
+        }
+    }
+    return term.term;
+}
+
+function extractAtomExpression(condintional: Conditional, nodeId: string, talias: immutable.Map<string, string>) {
+    return new Option(processItem(condintional.left, nodeId, talias), condintional.operator.operator, processItem(condintional.right, nodeId, talias));
+}
+
+function ProcessAtom2(top: Expression, condintional: Conditional, nodeId: string, talias: immutable.Map<string, string>): Expression {
+    const connect = condintional.connect ? condintional.connect.connect : null;
+    const copy = extractAtomExpression(condintional, nodeId, talias);
+    if (top && connect != null) {
+        if (top instanceof Connect) {
+            return new Connect(top.left, top.connect, new Connect(top.right, connect, copy));
+        }
+        if (top instanceof Option || top instanceof Parentheses) {
+            return new Connect(top, connect, copy);
+        }
+    }
+    return copy;
+}
+
+function ProcessGroup2(top: Expression, parentheses: ConditionalParentheses, nodeId: string, talias: immutable.Map<string, string>): Expression {
+    const connect = parentheses.connect ? parentheses.connect.connect : null;
+    const content = parentheses.content;
+    let gtop: Expression = null;
+    content.forEach(c => {
+        if (c instanceof Conditional) {
+            gtop = ProcessAtom2(gtop, c, nodeId, talias);
+        } else if (c instanceof ConditionalParentheses) {
+            gtop = ProcessGroup2(gtop, c, nodeId, talias);
+        } else { NotSupportNow(c); }
+    });
+    if (top && connect != null) {
+        if (top instanceof Connect) {
+            return new Connect(top.left, top.connect, new Connect(top.right, connect, new Parentheses(gtop)));
+        }
+        if (top instanceof Option || top instanceof Parentheses) {
+            return new Connect(top, connect, gtop);
+        }
+    }
+    return gtop;
+}
+
+
+/**
+ * combine Translate array, Translate Array<Translate> To SQL Where/On Expression
+ * @param translates Array<Translate>
+ */
+export function translateCombine2(translates: Array<Translate>, nodeId: string, talias: immutable.Map<string, string>): Expression {
+    if (translates == null) {
+        return null;
+    }
+    let top: Expression = null;
+    translates.forEach(translate => {
+        if (translate instanceof Conditional) {
+            top = ProcessAtom2(top, translate, nodeId, talias);
+        } else if (translate instanceof ConditionalParentheses) {
+            top = ProcessGroup2(top, translate, nodeId, talias);
+        } else { NotSupportNow(translate); }
+    });
+    return top;
+}
+
 function extractField(term: TraceTerm): TraceField {
+    if(term.state == null) {
+        return null;
+    }
     if (term.state.customValue) {
         return null;
     }
@@ -208,8 +295,8 @@ function extractTranslate(translate: Translate): Array<TraceField> {
     } else if (translate instanceof Conditional) {
         const left = extractField(translate.left);
         const right = extractField(translate.right);
-        if(left) fields.push(left);
-        if(right) fields.push(right);
+        if (left) fields.push(left);
+        if (right) fields.push(right);
     }
     return fields;
 }

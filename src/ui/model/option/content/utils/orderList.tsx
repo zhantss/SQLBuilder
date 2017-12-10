@@ -158,7 +158,7 @@ class OrderList extends React.PureComponent<OrderListProps, OrderListState> {
             const item = items.get(x)
             if(this.desc.has(item.order.id)) {
                 const desc: Select = this.desc.get(item.order.id);
-                item.order.desc = desc.collectValue().index;
+                item.order.mode = desc.collectValue().index;
             }
             order.push(item.order);
         }
@@ -190,7 +190,7 @@ class OrderList extends React.PureComponent<OrderListProps, OrderListState> {
                         label={cn.option_select_tab_order_items_table_des}
                         cellRenderer={({ rowData, rowIndex }) => {
                             const data: ListItem = rowData;
-                            const desc = data.order.desc;
+                            const desc = data.order.mode;
                             return <Select 
                                 identity={data.order.id}
                                 name={data.order.id}

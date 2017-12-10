@@ -1,13 +1,14 @@
 import * as React from 'react'
-import { bindActionCreators } from 'redux'
+// import { bindActionCreators } from 'redux'
 import * as immutable from 'immutable'
-import { connect } from 'react-redux'
+// import { connect } from 'react-redux'
 
 import * as classnames from 'classnames'
 
-import { graphic as graphicAction } from '../../common/actions'
+import { graphic as graphicAction, result as resultAction } from '../../common/actions'
 import { cn } from '../text'
 import { DataModel, DataDefine } from '../../common/data'
+import { connect2 } from '../../common/connect'
 
 import { Card, CardActions, CardHeader, CardMedia, CardTitle, CardText } from 'material-ui/Card';
 import RaisedButton from 'material-ui/RaisedButton';
@@ -17,16 +18,42 @@ import ModelArea from './area'
 import PowerBtn from './powerBtn'
 
 import '../stylesheet/model.scss'
+import { SQLBuilder } from '../../common/data/utils/sqlbuilder2';
 
 interface ModelPanelProps {
-    graphic: immutable.Map<string, any>
-    actions: graphicAction.$actions
+    graphic: any
+    options: any
+    actions: any
 }
 
 class ModelPanel extends React.PureComponent<ModelPanelProps> {
 
     private btnStyle = {
         margin: "0 12px"
+    }
+
+    testsql() {
+        const { graphic, options, actions } = this.props;
+        const entrances = graphic.get('entrances');
+        const graphicx = graphic.get('graphic');
+        if(entrances && graphicx && options) {
+            const selects = [];
+            entrances.forEach(entrance => {
+                try {
+                    const builder = new SQLBuilder(entrance, options, graphicx);
+                    const select = builder.build();
+                    selects.push(select.toString())
+                } catch(error) {
+                    const ep = graphicx.get(entrance).get('name') + "SQL Build ERROR, ERROR: " + error;
+                    selects.push(ep);
+                    console.error(ep);
+                }
+            });
+            if(selects.length > 0) {
+                const action: resultAction.$actions = actions.result;
+                action.BUILD(selects);
+            }
+        }
     }
 
     render() {
@@ -40,6 +67,7 @@ class ModelPanel extends React.PureComponent<ModelPanelProps> {
                             <PowerBtn content={cn.model_header_btn_union} style={this.btnStyle} powerType={DataModel.Data.DataType.SETOPERATORS} />
                             <FlatButton label={cn.model_header_btn_cancel} style={this.btnStyle} />
                             <FlatButton label={cn.model_header_btn_redo} style={this.btnStyle} />
+                            <FlatButton label={cn.model_test_sql} style={this.btnStyle} onTouchTap={this.testsql.bind(this)}/>
                         </div>
                     }>
 
@@ -53,7 +81,7 @@ class ModelPanel extends React.PureComponent<ModelPanelProps> {
 
 }
 
-const mapStateToProps = (state, ownProps) => {
+/* const mapStateToProps = (state, ownProps) => {
     return {
         graphic: state.get('graphic')
     };
@@ -68,4 +96,10 @@ const mapDispatchToProps = (dispatch, ownProps) => {
 export default connect(
     mapStateToProps,
     mapDispatchToProps
-)(ModelPanel);
+)(ModelPanel); */
+
+export default connect2(null, {
+    'graphic': ['graphic'],
+    'options' : ['option', 'options'],
+    'result' : null,
+})(ModelPanel)
