@@ -40,7 +40,7 @@ class ResultDialog extends React.PureComponent<ResultDialogProps> {
             actions={actions}
             modal={false}
             open={open}
-            onRequestClose={this.handleClose}
+            onRequestClose={this.handleClose.bind(this)}
         >
             {sql ? sql.map(s => {
                 return <p key={uuid.v4()}>{s}</p>
