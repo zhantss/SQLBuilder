@@ -16,9 +16,10 @@ import FlatButton from 'material-ui/FlatButton';
 
 import ModelArea from './area'
 import PowerBtn from './powerBtn'
+import { SQLBuilder } from '../../common/data/utils/sqlbuilder2'
 
 import '../stylesheet/model.scss'
-import { SQLBuilder } from '../../common/data/utils/sqlbuilder2';
+import { parser } from '../../common/data/utils/sqlparser';
 
 interface ModelPanelProps {
     graphic: any
@@ -42,7 +43,13 @@ class ModelPanel extends React.PureComponent<ModelPanelProps> {
                 try {
                     const builder = new SQLBuilder(entrance, options, graphicx);
                     const select = builder.build();
-                    selects.push(select.toString())
+                    const sql = select.toString();
+                    /* try {
+                        console.log(parser(sql));
+                    } catch (error) {
+                        console.error(error);
+                    } */
+                    selects.push(sql);
                 } catch(error) {
                     const ep = graphicx.get(entrance).get('name') + "SQL Build ERROR, ERROR: " + error;
                     selects.push(ep);
@@ -57,16 +64,17 @@ class ModelPanel extends React.PureComponent<ModelPanelProps> {
     }
 
     render() {
+        // TODO UNION, HISTORY
         return (
             <Card initiallyExpanded={true} containerStyle={{ position: 'relative', height: '100%' }} className={classnames('height100')}>
                 <CardHeader
                     style={{ borderLeft: "2px solid #efefef", padding: "0", height: '50px' }}
                     title={
                         <div className={'model-toolbar'}>
-                            <PowerBtn content={cn.model_header_btn_sub} style={this.btnStyle} powerType={DataModel.Data.DataType.SELECT} />
-                            <PowerBtn content={cn.model_header_btn_union} style={this.btnStyle} powerType={DataModel.Data.DataType.SETOPERATORS} />
-                            <FlatButton label={cn.model_header_btn_cancel} style={this.btnStyle} />
-                            <FlatButton label={cn.model_header_btn_redo} style={this.btnStyle} />
+                            {/* <PowerBtn content={cn.model_header_btn_sub} style={this.btnStyle} powerType={DataModel.Data.DataType.SELECT} /> */}
+                            <PowerBtn content={cn.model_header_btn_union} style={this.btnStyle} powerType={DataModel.Data.DataType.SETOPERATORS} disabled={true} />
+                            <FlatButton label={cn.model_header_btn_cancel} style={this.btnStyle} disabled={true} />
+                            <FlatButton label={cn.model_header_btn_redo} style={this.btnStyle} disabled={true} />
                             <FlatButton label={cn.model_test_sql} style={this.btnStyle} onTouchTap={this.testsql.bind(this)}/>
                         </div>
                     }>

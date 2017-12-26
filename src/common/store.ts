@@ -8,6 +8,7 @@ import * as reducers from './reducers'
 import history from './history'
 
 import DEV from './development'
+import watch from './api/saga'
 
 const middleware = routerMiddleware(history);
 const superLogger = createLogger({
@@ -19,16 +20,19 @@ const superLogger = createLogger({
     }
 })
 
+const saga = createSagaMiddleware()
+
 // TODO State Time Line
 
-let apply = applyMiddleware(middleware);
+let apply = applyMiddleware(middleware, saga);
 if (DEV) {
-    apply = applyMiddleware(middleware, superLogger);
+    apply = applyMiddleware(middleware, saga, superLogger);
 }
 
 const store = createStore(combineReducers({
     ...reducers,
     router: routerReducer
 }), apply);
+saga.run(watch as any)
 
 export default store;

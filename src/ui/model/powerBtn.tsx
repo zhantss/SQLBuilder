@@ -18,6 +18,7 @@ interface PowerBtnProps {
     style?: any
     content?: any
     powerType: DataModel.Data.DataType
+    disabled?: boolean
 }
 
 class PowerBtn extends React.PureComponent<PowerBtnProps> {
@@ -34,11 +35,11 @@ class PowerBtn extends React.PureComponent<PowerBtnProps> {
     }
 
     render() {
-        const { connectDragSource, isDragging, style, content } = this.props;
+        const { connectDragSource, isDragging, style, content, disabled } = this.props;
 
         return connectDragSource(
-            <div className={classnames('model-power-btn')}>
-                <RaisedButton label={content} style={style} />
+            <div className={classnames('model-power-btn', { disabled : disabled })}>
+                <RaisedButton label={content} style={style} disabled={disabled ? true : false} />
             </div>
         );
     }

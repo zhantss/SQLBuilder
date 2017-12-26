@@ -3,21 +3,27 @@ import { createActionDispatch, actionTypeProcess, createAction } from './create'
 const pre = 'RESULT_';
 
 const $types = {
-    BUILD : 'BUILD',
-    HIDE : 'HIDE'
+    BUILD: 'BUILD',
+    HIDE: 'HIDE',
+    PREVIEW: 'PREVIEW',
+    SAVE: 'SAVE'
 }
 
 const actions = {
-    BUILD : ['sql'],
-    HIDE : []
+    BUILD: ['sql'],
+    HIDE: [],
+    PREVIEW: ['payload'],
+    SAVE: ['payload']
 }
 
 actionTypeProcess(pre, $types);
 const $dispatch = createActionDispatch(pre, actions);
 
 interface $actions {
-    BUILD(sql: Array<string>) : any,
-    HIDE() : any
+    BUILD(sql: Array<string>): any
+    HIDE(): any
+    PREVIEW({ index: number, sql: string }): any,
+    SAVE({ sqls : any }): any
 }
 
 export {

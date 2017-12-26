@@ -43,6 +43,12 @@ class ResourcesSelecter extends React.PureComponent<ResourcesSelecterProps, Reso
         })
     }
 
+    componentWillMount() {
+        const { actions } = this.props;
+        const action: resourcesAction.$actions = actions;
+        action.REFRESH();
+    }
+
     render() {
         return (
             <Card initiallyExpanded={true} className={classnames('height100', 'user-select-none', 'resources-card')} containerStyle={{ flex: 1, display: 'flex', flexDirection: 'column' }}>

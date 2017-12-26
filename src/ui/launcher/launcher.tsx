@@ -31,9 +31,16 @@ class Launcher extends React.PureComponent<LauncherProps> {
 
     private launcher: Launcher;
 
-    closeResult() {
-        const action: resultAction.$actions = this.props.actions.result;
-        action.HIDE();
+    previewResult(index: number, sql: string) {
+        const { result, actions } = this.props;
+        const action: resultAction.$actions = actions.result;
+        action.PREVIEW({ index, sql });
+    }
+
+    saveResult(sqls: any) {
+        const { result, actions } = this.props;
+        const action: resultAction.$actions = actions.result;
+        action.SAVE({ sqls : sqls });
     }
 
     render() {
@@ -49,7 +56,7 @@ class Launcher extends React.PureComponent<LauncherProps> {
                     </div>
                     {<Layout />}
                     {<OptionPanel />}
-                    {<ResultDialog hide={this.closeResult.bind(this)}  sql={result.get('sql')} open={result.get('dialog')} />}
+                    {<ResultDialog />}
                 </div>
             </MuiThemeProvider>
         );
@@ -75,5 +82,5 @@ export default connect(
 )(DragDropContext(HTML5Backend)(Launcher)); */
 
 export default connect2(null, {
-    'result' : ['result'],
+    'result': ['result'],
 })(DragDropContext(HTML5Backend)(Launcher))

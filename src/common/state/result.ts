@@ -6,7 +6,9 @@ let result = immutable.fromJS({
     
     sql: null,
 
-    dialog : false
+    dialog : false,
+
+    result: {}
 
 });
 

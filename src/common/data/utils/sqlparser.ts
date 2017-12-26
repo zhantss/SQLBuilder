@@ -2,6 +2,10 @@ import { parse, yy } from 'alasql'
 import { Field } from './../model/data'
 import { Function } from '../define/expression';
 
+export function parser(sql: string) {
+    return parse(sql);
+}
+
 export function getSelectItems(sql: string): Array<Field> {
     try {
         const type: any = yy;

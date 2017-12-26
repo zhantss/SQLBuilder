@@ -53,10 +53,11 @@ class SourceItem extends React.PureComponent<SourceItemProps, SourceItemState> {
         const { option } = actions;
         let action: optionAction.$actions = option;
         const key = node.get('key');
-        const sourceKey = key + ".SOURCE";
+        const selectKey = key + ".SELECT";
         const data: DataModel.Data.Source = node.get('data');
-        const optionSource = Option.tableConstructorByDataSource(data);
-        action.SUBMIT(sourceKey, optionSource);
+        // const optionSource = Option.tableConstructorByDataSource(data);
+        const select = new Option.Select(selectKey);
+        action.SUBMIT(selectKey, select);
     }
 
     componentWillUnmount() {
@@ -64,8 +65,8 @@ class SourceItem extends React.PureComponent<SourceItemProps, SourceItemState> {
         const { option } = actions;
         let action: optionAction.$actions = option;
         const key = node.get('key');
-        const sourceKey = key + ".SOURCE";
-        action.REMOVE(sourceKey);
+        const selectKey = key + ".SELECT";
+        action.REMOVE(selectKey);
     }
 
     over(event) {

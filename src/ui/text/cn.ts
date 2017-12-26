@@ -44,3 +44,5 @@ export const option_select_tab_select_items_table_no_row = "请添加需要查�
 export const option_select_tab_order_items_table_des = "排序"
 
 export const result_sql_title = "测试结果"
+export const result_sql_save = "保存模型"
+export const result_sql_save_loading = "正在保存"

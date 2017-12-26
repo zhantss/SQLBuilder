@@ -44,7 +44,9 @@ class ResourcesSource extends React.PureComponent<ResourcesSourceProps, Resource
         const sources = resources.get('sources');
         if (sources == null) {
             return {
-
+                search: null,
+                db: [],
+                list: null
             }
         }
 
@@ -114,7 +116,7 @@ class ResourcesSource extends React.PureComponent<ResourcesSourceProps, Resource
                     style={{ padding: "0 16px", boxSizing : "border-box" }}
                     floatingLabelText={<Icon name={'search'} content={cn.resources_selecter_source} custom={"auto-complete"} />}
                     filter={AutoComplete.fuzzyFilter}
-                    dataSource={db}
+                    dataSource={db != null ? db : []}
                     maxSearchResults={10}
                     onNewRequest={this.setSearch.bind(this)}
                     onUpdateInput={this.updateSearch.bind(this)}

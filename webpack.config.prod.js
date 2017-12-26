@@ -15,6 +15,7 @@ module.exports = {
         plugin: ['redux-saga', 'redux-logger', 'immutable', 'redux-immutable', 'react-dnd', 'react-dnd-html5-backend'],
         ui: ['react-tap-event-plugin', 'material-ui', 'material-design-icons', 'react-virtualized', 'react-sortable-hoc'],
         tool: ['axios', 'bowser', 'moment', 'classnames', 'uuid', 'alasql'],
+        api: ['./src/common/api/api.ts', './src/common/api/url.ts'],
         sqlbuilder: ['./src/index.tsx']
     },
     output: {

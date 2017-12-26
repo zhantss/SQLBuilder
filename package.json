@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node server.js ",
-    "build" : "webpack --config webpack.config.prod.js"
+    "build": "webpack --config webpack.config.prod.js"
   },
   "keywords": [
     "SQLBuilder",
@@ -20,7 +20,7 @@
   "license": "ISC",
   "dependencies": {
     "alasql": "^0.4.1",
-    "axios": "^0.16.2",
+    "axios": "^0.17.1",
     "bowser": "^1.7.0",
     "classnames": "^2.2.5",
     "immutable": "^3.8.1",
@@ -43,7 +43,7 @@
     "redux": "^3.7.1",
     "redux-immutable": "^4.0.0",
     "redux-logger": "^3.0.6",
-    "redux-saga": "^0.15.4",
+    "redux-saga": "^0.15.6",
     "uuid": "^3.1.0"
   },
   "devDependencies": {

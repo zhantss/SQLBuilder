@@ -197,7 +197,7 @@ class SelectContent extends React.PureComponent<SelectContentProps, SelectConten
     render() {
         const { selectables, select, targetId, nodeId, group, db, logic } = this.state;
         const buttonStyle = { lineHeight: "48px" };
-        const selected = logic ? logic.collect(nodeId) : immutable.Map<string, TraceField>();
+        const selected = logic ? logic.collect(nodeId) : immutable.OrderedMap<string, TraceField>();
         const orderbys = logic ? logic.orders(nodeId) : new Order();
         const gourpbys = logic ? logic.groups(nodeId) : new Group();
         return (

@@ -8,7 +8,7 @@ import IconButton from 'material-ui/IconButton'
 import MenuItem from 'material-ui/MenuItem'
 import TextField from 'material-ui/TextField'
 
-import { AutoSizer as RV_AutoSizer, Table as RV_Table, Column as RV_Column, SortDirection as ev_SortDirection, SortIndicator as RV_SortIndicator, SortDirection as RV_SortDirection } from 'react-virtualized'
+import { AutoSizer as RV_AutoSizer, Table as RV_Table, Column as RV_Column, SortIndicator as RV_SortIndicator, SortDirection as RV_SortDirection } from 'react-virtualized'
 import { SortableContainer, SortableElement, arrayMove } from 'react-sortable-hoc'
 
 import { SimpleIcon as Icon } from '../../../../icon'
@@ -25,13 +25,13 @@ import { Translate, ConnectAtomOption, GroupParentheses } from '../../../../../c
 import { TraceSelectItem, TraceField } from '../../../../../common/data/option/traceability'
 
 interface RichFieldListProps {
-    addins: immutable.Map<string, TraceField>
+    addins: immutable.OrderedMap<string, TraceField>
     nodeId: string
     className?: any
 }
 
 interface RichFieldListState {
-    items: immutable.Map<number, TraceSelectItem>
+    items: immutable.OrderedMap<number, TraceSelectItem>
     exists: immutable.Map<string, number>
     unique: immutable.Map<string, number>
 }
@@ -44,10 +44,10 @@ class RichFieldList extends React.PureComponent<RichFieldListProps, RichFieldLis
     }
 
     initialization(addins: immutable.Map<string, TraceField>) {
-        return this.mapping(immutable.Map<number, TraceSelectItem>(), /* immutable.Map<string, number>(), */ immutable.Map<string, number>(), addins);
+        return this.mapping(immutable.OrderedMap<number, TraceSelectItem>(), /* immutable.Map<string, number>(), */ immutable.OrderedMap<string, number>(), addins);
     }
 
-    mapping(items: immutable.Map<number, TraceSelectItem>, /* exists: immutable.Map<string, number>,  */unique: immutable.Map<string, number>, addins: immutable.Map<string, TraceField>) {
+    mapping(items: immutable.OrderedMap<number, TraceSelectItem>, /* exists: immutable.Map<string, number>,  */unique: immutable.Map<string, number>, addins: immutable.OrderedMap<string, TraceField>) {
         // let { items, exists } = this.state;
         const { nodeId } = this.props;
         let tfs = addins.valueSeq().toArray();

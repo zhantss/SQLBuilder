@@ -25,10 +25,13 @@ export class Select implements Statement {
     // TODO Oracle OEM
 
     toString() {
-        let s = "SELECT " + this.items.join(", ") + " FROM " + this.fromItem.toString();
+        let s = "SELECT " + (this.items.length > 0 ? this.items.join(", ") : "*") + " FROM " + this.fromItem.toString();
         if(this.joins) {
-            if(this.joins[0] && (this.joins[0].mode == null || this.joins[0].mode == JoinMode.NATURAL)) {
-                s = s + " " + this.joins.join(", ");
+            const filters = this.joins.filter(j => {
+                return j.mode == JoinMode.NATURAL
+            })
+            if(filters.length > 0) {
+                s = s + ", " + this.joins.join(", ");
             } else {
                 this.joins.forEach(join => {
                     s = s + " " + join.toString();

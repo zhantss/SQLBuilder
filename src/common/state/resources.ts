@@ -3,7 +3,7 @@ import * as uuid from 'uuid'
 import { DataModel } from '../data'
 import { Field } from './../data/model/data';
 import DEV from '../development'
-import TEST from '../environment'
+// import TEST from '../environment'
 
 /**
  * 资源选择器State
@@ -12,7 +12,7 @@ let resources = immutable.fromJS({
 
 });
 
-if (DEV || TEST) {
+if (DEV /* || TEST */) {
     const groups = [
         {
             identity: "1",

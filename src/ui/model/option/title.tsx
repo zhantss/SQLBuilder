@@ -6,7 +6,10 @@ import { connect2 } from '../../../common/connect'
 
 
 interface OptionTitleProps {
-    title: any
+    title: any,
+    start?: () => void/* 
+    move?: () => void
+    end?: () => void */
 }
 
 class OptionTitle extends React.PureComponent<OptionTitleProps> {
@@ -15,9 +18,9 @@ class OptionTitle extends React.PureComponent<OptionTitleProps> {
     }
 
     render() {
-        const { title } = this.props;
+        const { title, start/* , move, end */ } = this.props;
         return (
-            <div className="option-title">{title}</div>
+            <div className="option-title" onMouseDown={start} /* onMouseMove={move} onMouseUp={end} */>{title}</div>
         );
     }
 }

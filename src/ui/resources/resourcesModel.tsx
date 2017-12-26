@@ -50,7 +50,7 @@ class ResourcesModel extends React.PureComponent<ResourcesModelProps, ResourcesM
         if (models == null) {
             return {
                 search: null,
-                db: null,
+                db: [],
                 tree: null,
                 mark: null,
                 superopen: null
@@ -259,7 +259,7 @@ class ResourcesModel extends React.PureComponent<ResourcesModelProps, ResourcesM
                     style={{ padding: "0 16px", boxSizing: "border-box" }}
                     floatingLabelText={<Icon name={'search'} content={cn.resources_selecter_model} custom={"auto-complete"} />}
                     filter={AutoComplete.fuzzyFilter}
-                    dataSource={db}
+                    dataSource={db != null ? db : []}
                     maxSearchResults={10}
                     onNewRequest={this.setSearch.bind(this)}
                     onUpdateInput={this.updateSearch.bind(this)}

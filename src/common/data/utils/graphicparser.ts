@@ -43,10 +43,10 @@ function collectOneNode(collecter: string, id: string, graphic: any) : immutable
 export const UNIQUE_DESIGNATION_SEPARATOR = "_";
 
 export function uniqueDesignation(unique: string): string {
-    if(unique && unique.length > 2 && unique.charAt(unique.length - 2) == UNIQUE_DESIGNATION_SEPARATOR) {
-        const number = parseInt(unique.charAt(unique.length - 1))
+    if(unique && unique.lastIndexOf(UNIQUE_DESIGNATION_SEPARATOR) != -1) {
+        const number = parseInt(unique.slice(unique.lastIndexOf(UNIQUE_DESIGNATION_SEPARATOR) + 1))
         if(!isNaN(number)) {
-            return unique.slice(0, unique.length - 1) + (number + 1);
+            return unique.slice(0, unique.length - (number.toString().length)) + (number + 1);
         }
     }
     return unique + UNIQUE_DESIGNATION_SEPARATOR + '1';

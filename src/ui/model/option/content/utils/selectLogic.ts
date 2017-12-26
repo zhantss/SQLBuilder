@@ -15,7 +15,7 @@ export class SelectNode {
     nodes: immutable.List<string>
     tfs: immutable.Map<string, TraceField>
     appends: immutable.Map<string, TraceField>
-    selects: immutable.Map<string, boolean>
+    selects: immutable.OrderedMap<string, boolean>
     groupbys: Group
     orderbys: Order
     where: Array<Translate>
@@ -58,7 +58,7 @@ export class SelectNode {
                 }
             })
         }
-        this.selects = immutable.Map<string, boolean>();
+        this.selects = immutable.OrderedMap<string, boolean>();
         select.selects.forEach(s => {
             this.selects = this.selects.set(s, true);
         })
@@ -119,7 +119,11 @@ export class SelectNode {
             }
             if (pname != cname) { ofield.trace.creater.item.alias = new Alias(pname); }
             this.named = this.named.set(pname, ofield.id);
-            this.tfs = this.tfs.set(ofield.id, ofield);
+            if(this.tfs.has(ofield.id)) {
+                this.tfs = this.tfs.set(ofield.id, ofield);
+            } else {
+                this.appends = this.appends.set(ofield.id, ofield);
+            }
         } else {
             if (this.tfs.has(field.id)) {
                 const des = field.trace.getDesignation(aliasId);
@@ -197,11 +201,11 @@ export class SelectNode {
         return field;
     }
 
-    submit(): immutable.Map<string, TraceField> {
-        let submits = immutable.Map<string, TraceField>();
+    submit(collectId?: string): immutable.OrderedMap<string, TraceField> {
+        let submits = immutable.OrderedMap<string, TraceField>();
         if (this.selects) {
             this.selects.keySeq().forEach(s => {
-                let submit = this.getTraceField(s);
+                let submit = collectId && collectId == this.id ? this.tfs.get(s) : this.getTraceField(s);
                 if (submit) submits = submits.set(submit.id, submit);
             })
         }
@@ -231,7 +235,7 @@ export class SelectNode {
         this.anamed = this.anamed.clear();
     }
 
-    collect(logic: SelectLogic, selects: immutable.Map<string, boolean>): immutable.Map<string, TraceField> {
+    collect(logic: SelectLogic, selects: immutable.Map<string, boolean>): immutable.OrderedMap<string, TraceField> {
         this.clean();
         if (this.nodes) {
             if (selects == null) selects = this.selects;
@@ -316,7 +320,7 @@ export class SelectLogic {
 
     select(nodeId: string, fields: Array<TraceField>, unique?: boolean) {
         if (nodeId && fields && this.nodes.has(nodeId)) {
-            let selects = immutable.Map<string, boolean>();
+            let selects = immutable.OrderedMap<string, boolean>();
             fields.forEach(field => {
                 const cid = field.trace.creater.id;
                 const traceId = field.id;
@@ -428,7 +432,7 @@ export class SelectLogic {
         return new Order();
     }
 
-    collect(collectId: string): immutable.Map<string, TraceField> {
+    collect(collectId: string): immutable.OrderedMap<string, TraceField> {
         if (collectId == null) {
             collectId = this.topId;
         }

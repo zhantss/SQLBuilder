@@ -29,6 +29,14 @@
 .model-power-btn {
     display: inline-block;
     cursor: grab !important;
+    &.disabled {
+        cursor: default !important;
+        pointer-events: none;
+        button {
+            cursor: default !important;
+            pointer-events: none;
+        }
+    }
     button {
         cursor: grab !important;
     }
