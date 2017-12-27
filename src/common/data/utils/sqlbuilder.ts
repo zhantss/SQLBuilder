@@ -1,4 +1,4 @@
-import { parse, yy } from 'alasql'
+/* import { parse, yy } from 'alasql'
 import * as immutable from 'immutable'
 import * as SQLParser from './sqlparser'
 import Generator from './generator'
@@ -187,4 +187,4 @@ export class SQLBuilder {
             });
         }
     }
-}
+} */

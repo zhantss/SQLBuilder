@@ -21,6 +21,7 @@ import '../stylesheet/drag.scss'
 import '../stylesheet/draw.scss'
 import '../stylesheet/option.scss'
 import '../stylesheet/launcher.scss'
+import SyncDialog from '../sync/SyncDialog';
 
 class LauncherProps {
     result: any
@@ -57,6 +58,7 @@ class Launcher extends React.PureComponent<LauncherProps> {
                     {<Layout />}
                     {<OptionPanel />}
                     {<ResultDialog />}
+                    {<SyncDialog />}
                 </div>
             </MuiThemeProvider>
         );
@@ -82,5 +84,5 @@ export default connect(
 )(DragDropContext(HTML5Backend)(Launcher)); */
 
 export default connect2(null, {
-    'result': ['result'],
+    'result': ['result']
 })(DragDropContext(HTML5Backend)(Launcher))

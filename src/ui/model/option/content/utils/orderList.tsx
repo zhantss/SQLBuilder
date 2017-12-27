@@ -22,13 +22,13 @@ import { GraphicParser } from '../../../../../common/data/utils'
 import { Expression, AtomExpression, Value, Column, Function } from '../../../../../common/data/define/expression'
 import { Alias, OrderMode, ordermodes } from '../../../../../common/data/define/extra'
 import { Option } from '../../../../../common/data/option'
-import { Translate, ConnectAtomOption, GroupParentheses } from '../../../../../common/data/option/translate'
+import { Translate } from '../../../../../common/data/option/translate'
 import { TraceSelectItem, TraceField } from '../../../../../common/data/option/traceability'
-import { OrderByItem, Order } from '../../../../../common/data/option/option'
+import { OrderByItem, OrderOption } from '../../../../../common/data/option/option'
 
 interface OrderListProps {
     // addins: immutable.Map<string, TraceField>
-    order: Order
+    order: OrderOption
     nodeId: string
     className?: any
 }
@@ -62,11 +62,11 @@ class OrderList extends React.PureComponent<OrderListProps, OrderListState> {
         this.state = this.initialization(this.props.order);
     }
 
-    initialization(order: Order) {
+    initialization(order: OrderOption) {
         return this.mapping(immutable.Map<number, ListItem>(), /* immutable.Map<string, number>(),  */immutable.Map<string, number>(), order);
     }
 
-    mapping(items: immutable.Map<number, ListItem>, /* exists: immutable.Map<string, number>, */ unique: immutable.Map<string, number>, order: Order) {
+    mapping(items: immutable.Map<number, ListItem>, /* exists: immutable.Map<string, number>, */ unique: immutable.Map<string, number>, order: OrderOption) {
         // let { items, exists } = this.state;
         const { nodeId } = this.props;
         let orders = order.sequence().toArray();
@@ -149,11 +149,11 @@ class OrderList extends React.PureComponent<OrderListProps, OrderListState> {
 
     private desc: immutable.Map<string, any> = immutable.Map<string, any>()
 
-    public collect(): Order {
+    public collect(): OrderOption {
         const { nodeId } = this.props;
         const { items } = this.state;
         const upper: Array<OrderByItem> = [];
-        const order = new Order();
+        const order = new OrderOption();
         for (let x = 0; x < items.size; x++) {
             const item = items.get(x)
             if(this.desc.has(item.order.id)) {

@@ -56,7 +56,7 @@ class SourceItem extends React.PureComponent<SourceItemProps, SourceItemState> {
         const selectKey = key + ".SELECT";
         const data: DataModel.Data.Source = node.get('data');
         // const optionSource = Option.tableConstructorByDataSource(data);
-        const select = new Option.Select(selectKey);
+        const select = new Option.SelectOption(selectKey);
         action.SUBMIT(selectKey, select);
     }
 

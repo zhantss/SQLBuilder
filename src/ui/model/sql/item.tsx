@@ -56,7 +56,7 @@ class SQLItem extends React.PureComponent<SQLItemProps, SQLItemState> {
         const selectKey = key + ".SELECT";
         const data: DataModel.Data.Model = node.get('data');
         // const optionSQLModel = Option.tableConstructorByDataModel(data);
-        const select = new Option.Select(selectKey);
+        const select = new Option.SelectOption(selectKey);
         action.SUBMIT(selectKey, select);
     }
 

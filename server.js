@@ -6,6 +6,7 @@ var bodyParser = require('body-parser');
 var webpack = require('webpack');
 var config = require('./webpack.config');
 
+var data_init = require('./example/init');
 var data_groups = require('./example/group');
 var data_models = require('./example/model');
 var data_sources = require('./example/source');
@@ -33,6 +34,15 @@ app.get('/test', function (req, res) {
     res.sendFile(path.join(__dirname, '/example/data.json'));
 });
 
+app.post('/get/model/init', function (req, res) {
+    if (req.body && req.body.modelId) {
+        console.log(req.body.modelId)
+        res.send(data_init)
+    } else {
+        res.send({ error: "no model id" })
+    }
+});
+
 app.get('/get/resources/group', function (req, res) {
     res.send(data_groups)
 });
@@ -45,7 +55,7 @@ app.get('/get/resources/source', function (req, res) {
 
 app.post('/sql/model/preview', function (req, res) {
     // console.log(req.body)
-    if(req.body && req.body.sql) {
+    if (req.body && req.body.sql) {
         const sql = req.body.sql;
         res.send(query(sql))
     }
@@ -53,7 +63,7 @@ app.post('/sql/model/preview', function (req, res) {
 
 app.post('/sql/model/save', function (req, res) {
     // console.log(req.body)
-    if(req.body && req.body.sqls) {
+    if (req.body && req.body.sqls) {
         const sqls = req.body.sqls;
         res.send("ok");
     } else {

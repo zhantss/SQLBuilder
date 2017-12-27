@@ -75,7 +75,7 @@ export class AtomOption implements Expression {
         this.right = right;
     }
 }
-
+/* 
 export class ConnectAtomOption implements Translate {
     connect?: OptionConnect
     content: AtomOption
@@ -95,102 +95,9 @@ export class GroupParentheses implements Translate {
             this.content = new Array();
         }
     }
-}
+} */
 
 function NotSupportNow(exp: Expression) { throw 'can not combine this expression now, TYPE IS ' + typeof exp; }
-
-function AtomCopy(atom: AtomOption): Option {
-    return new Option(atom.left, atom.operator, atom.right);
-}
-
-function AtomPaste(option: Option): AtomOption {
-    if (option && option.left instanceof AtomExpression && option.right instanceof AtomExpression) {
-        return new AtomOption(option.left, option.operator, option.right);
-    }
-    return null;
-}
-
-function ProcessAtom(top: Expression, atom: ConnectAtomOption): Expression {
-    const connect = atom.connect;
-    const copy = AtomCopy(atom.content);
-    if (top && connect != null) {
-        if (top instanceof Connect) {
-            return new Connect(top.left, top.connect, new Connect(top.right, connect, copy));
-        }
-        if (top instanceof Option || top instanceof Parentheses) {
-            return new Connect(top, connect, copy);
-        }
-    }
-    return copy;
-}
-
-function ProcessGroup(top: Expression, group: GroupParentheses): Expression {
-    const connect = group.connect;
-    const content = group.content;
-    let gtop: Expression = null;
-    content.forEach(c => {
-        if (c instanceof ConnectAtomOption) {
-            gtop = ProcessAtom(gtop, c);
-        } else if (c instanceof GroupParentheses) {
-            gtop = ProcessGroup(gtop, c);
-        } else { NotSupportNow(c); }
-    });
-    if (top && connect != null) {
-        if (top instanceof Connect) {
-            return new Connect(top.left, top.connect, new Connect(top.right, connect, new Parentheses(gtop)));
-        }
-        if (top instanceof Option || top instanceof Parentheses) {
-            return new Connect(top, connect, gtop);
-        }
-    }
-    return gtop;
-}
-
-/**
- * combine Translate array, Translate Array<Translate> To SQL Where/On Expression
- * @param translates Array<Translate>
- */
-export function translateCombine(translates: Array<Translate>): Expression {
-    if (translates == null) {
-        return null;
-    }
-    let top: Expression = null;
-    translates.forEach(translate => {
-        if (translate instanceof ConnectAtomOption) {
-            top = ProcessAtom(top, translate);
-        } else if (translate instanceof GroupParentheses) {
-            top = ProcessGroup(top, translate);
-        } else { NotSupportNow(translate); }
-    });
-    return top;
-}
-
-function slice(exp: Expression, connect: OptionConnect): Array<Translate> {
-    if (exp instanceof Connect) {
-        const left = exp.left;
-        const econnect = exp.connect;
-        const right = exp.right;
-        return []
-            .concat(slice(left, connect))
-            .concat(slice(right, econnect));
-    } else if (exp instanceof Option) {
-        return [new ConnectAtomOption(AtomPaste(exp), connect)]
-    } else if (exp instanceof Parentheses) {
-        return [new GroupParentheses(slice(exp.content, null), connect)]
-    }
-    NotSupportNow(exp);
-}
-
-/**
- * slice Expression, Translate SQL Where/On To Array<Translate>
- * @param expression Expression[SQL Where/On]
- */
-export function translateSlice(expression: Expression): Array<Translate> {
-    if (expression == null) {
-        return null;
-    }
-    return slice(expression, null);
-}
 
 function processItem(term: TraceTerm, nodeId: string, talias: immutable.Map<string, string>) {
     const state = term.state;
@@ -219,7 +126,7 @@ function extractAtomExpression(condintional: Conditional, nodeId: string, talias
     return new Option(processItem(condintional.left, nodeId, talias), condintional.operator.operator, processItem(condintional.right, nodeId, talias));
 }
 
-function ProcessAtom2(top: Expression, condintional: Conditional, nodeId: string, talias: immutable.Map<string, string>): Expression {
+function ProcessAtom(top: Expression, condintional: Conditional, nodeId: string, talias: immutable.Map<string, string>): Expression {
     const connect = condintional.connect ? condintional.connect.connect : null;
     const copy = extractAtomExpression(condintional, nodeId, talias);
     if (top && connect != null) {
@@ -233,15 +140,15 @@ function ProcessAtom2(top: Expression, condintional: Conditional, nodeId: string
     return copy;
 }
 
-function ProcessGroup2(top: Expression, parentheses: ConditionalParentheses, nodeId: string, talias: immutable.Map<string, string>): Expression {
+function ProcessGroup(top: Expression, parentheses: ConditionalParentheses, nodeId: string, talias: immutable.Map<string, string>): Expression {
     const connect = parentheses.connect ? parentheses.connect.connect : null;
     const content = parentheses.content;
     let gtop: Expression = null;
     content.forEach(c => {
         if (c instanceof Conditional) {
-            gtop = ProcessAtom2(gtop, c, nodeId, talias);
+            gtop = ProcessAtom(gtop, c, nodeId, talias);
         } else if (c instanceof ConditionalParentheses) {
-            gtop = ProcessGroup2(gtop, c, nodeId, talias);
+            gtop = ProcessGroup(gtop, c, nodeId, talias);
         } else { NotSupportNow(c); }
     });
     if (top && connect != null) {
@@ -260,16 +167,16 @@ function ProcessGroup2(top: Expression, parentheses: ConditionalParentheses, nod
  * combine Translate array, Translate Array<Translate> To SQL Where/On Expression
  * @param translates Array<Translate>
  */
-export function translateCombine2(translates: Array<Translate>, nodeId: string, talias: immutable.Map<string, string>): Expression {
+export function translateCombine(translates: Array<Translate>, nodeId: string, talias: immutable.Map<string, string>): Expression {
     if (translates == null) {
         return null;
     }
     let top: Expression = null;
     translates.forEach(translate => {
         if (translate instanceof Conditional) {
-            top = ProcessAtom2(top, translate, nodeId, talias);
+            top = ProcessAtom(top, translate, nodeId, talias);
         } else if (translate instanceof ConditionalParentheses) {
-            top = ProcessGroup2(top, translate, nodeId, talias);
+            top = ProcessGroup(top, translate, nodeId, talias);
         } else { NotSupportNow(translate); }
     });
     return top;

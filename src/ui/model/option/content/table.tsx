@@ -1,4 +1,4 @@
-import * as React from 'react'
+/* import * as React from 'react'
 import * as classnames from 'classnames'
 import * as uuid from 'uuid'
 
@@ -46,7 +46,7 @@ class TableContent extends React.PureComponent<TableContentProps, TableJoinConte
 
     flush(items: Array<SelectableExpression>) {
         const { actions, options, target } = this.props;
-        let table: Option.Table = options.get(target.target.id);
+        let table: Option.TableOption = options.get(target.target.id);
         let action: optionAction.$actions = actions.option;
         table = Object.create(table);
         table.items = items;
@@ -57,7 +57,7 @@ class TableContent extends React.PureComponent<TableContentProps, TableJoinConte
         const { target, options } = this.props;
         const id = target.target.id;
         const data = target.target.item;
-        const table: Option.Table = options.get(id);
+        const table: Option.TableOption = options.get(id);
 
         return (
             <div className="option-table">
@@ -73,4 +73,4 @@ class TableContent extends React.PureComponent<TableContentProps, TableJoinConte
     }
 }
 
-export default connect2(null, { 'option': null, 'options': ['option', 'options'], 'target': ['option', 'target'] })(TableContent)
+export default connect2(null, { 'option': null, 'options': ['option', 'options'], 'target': ['option', 'target'] })(TableContent) */

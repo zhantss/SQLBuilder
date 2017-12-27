@@ -3,7 +3,7 @@ import { SelectLogic, SelectNode } from "../../../ui/model/option/content/utils/
 import { Select, Statement } from "../define/statement"
 import * as DataModel from "../model"
 import { SQLModelSelect, Table, SubSelect } from "../define/fromItem";
-import { translateCombine2 } from "../option/translate";
+import { translateCombine } from "../option/translate";
 import { Join } from '../define/set';
 import { Column } from '../define/expression';
 import { Alias, Order } from '../define/extra';
@@ -66,7 +66,7 @@ export class SQLBuilder {
                 if (cnode) {
                     const subs = this.processNode(cnode);
                     if (subs) {
-                        const option: Option.Join = this.options.get(nid + ".JOIN");
+                        const option: Option.JoinOption = this.options.get(nid + ".JOIN");
                         if (option) {
                             const join = new Join();
                             const sub = new SubSelect();
@@ -75,7 +75,7 @@ export class SQLBuilder {
                             join.fromItem = sub;
 
                             join.mode = option.mode;
-                            join.on = translateCombine2(option.on, node.id, talias);
+                            join.on = translateCombine(option.on, node.id, talias);
 
                             joins.push(join);
                         } else {
@@ -109,7 +109,7 @@ export class SQLBuilder {
         select.items = selects;
 
         // where
-        select.where = translateCombine2(node.where, node.id, talias);
+        select.where = translateCombine(node.where, node.id, talias);
 
         // group
         const group = node.groupbys;
@@ -133,7 +133,7 @@ export class SQLBuilder {
         select.groups = groups;
 
         // having
-        select.having = translateCombine2(node.having, node.id, talias);
+        select.having = translateCombine(node.having, node.id, talias);
 
         // order
         const order = node.orderbys;

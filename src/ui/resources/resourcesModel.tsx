@@ -169,9 +169,11 @@ class ResourcesModel extends React.PureComponent<ResourcesModelProps, ResourcesM
         if (group) {
             const identity = node.get('identity');
             let nestedItems = new Array();
-            nodes.forEach(element => {
-                nestedItems.push(this.nodeBuild(element, mark));
-            });
+            if(nodes != null) {
+                nodes.forEach(element => {
+                    nestedItems.push(this.nodeBuild(element, mark));
+                });
+            }
             if (mark.indexOf(identity) != -1) {
                 return <ListItem
                     key={identity}

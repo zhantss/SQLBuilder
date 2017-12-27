@@ -16,6 +16,7 @@ declare module 'react' {
 
 import history from './common/history'
 import store from './common/store'
+import { initialization } from './common/api/init'
 
 // react-virtualized
 import 'react-virtualized/styles.css'
@@ -38,4 +39,6 @@ ReactDOM.render(
         </ConnectedRouter>
     </Provider>
 
-    , document.getElementById("root"));
+    , document.getElementById("root"),() => {
+        initialization(store)
+    });

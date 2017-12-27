@@ -75,4 +75,8 @@ export class SetOperators implements Data {
     constructor(children: string) {
         this.children = children;
     }
+
+    static deserialize(data) {
+        // TODO
+    }
 }

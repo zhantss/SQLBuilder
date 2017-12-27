@@ -21,6 +21,12 @@ const groups = [
         name: "客户贷款",
         parent: "1",
         depth: 2
+    },
+    {
+        identity: "1.4",
+        name: "空分组测试",
+        parent: "1",
+        depth: 2
     }
 ]
 

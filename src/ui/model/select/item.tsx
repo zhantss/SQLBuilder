@@ -59,7 +59,7 @@ class SelectItem extends React.PureComponent<SelectItemProps, SelectItemState> {
         const selectKey = key + ".SELECT";
         const data: DataModel.Data.Select = node.get('data');
         // TODO
-        const optionSelect = new Option.Select(selectKey);
+        const optionSelect = new Option.SelectOption(selectKey);
         action.SUBMIT(selectKey, optionSelect);
     }
 

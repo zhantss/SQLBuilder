@@ -13,7 +13,7 @@ import { option as optionAction, graphic as graphicAction } from '../../../../co
 import { JoinMode, modes } from '../../../../common/data/define/set'
 import { Option, OptionTarget } from '../../../../common/data/option'
 import { Expression, OptionOperator, Column } from '../../../../common/data/define/expression'
-import { Translate, ConnectAtomOption, GroupParentheses } from '../../../../common/data/option/translate'
+import { Translate } from '../../../../common/data/option/translate'
 
 import Isolation from '../../../common/isolation/isolation'
 import MixingMutiSelect from './utils/mixingMutiSelect'
@@ -24,7 +24,7 @@ import ExpressionList from './utils/expressionList'
 import { SelectLogic, SelectNode } from './utils/selectLogic'
 import { TraceSelectItem, TraceField, Creater, DataSource, Trace } from '../../../../common/data/option/traceability'
 import { SelectItem, Alias } from '../../../../common/data/define/extra'
-import { arrayToOrder, Order, Group } from '../../../../common/data/option/option'
+import { arrayToOrder, OrderOption, GroupOption } from '../../../../common/data/option/option'
 
 interface SelectContentProps {
     actions?: any
@@ -34,7 +34,7 @@ interface SelectContentProps {
 }
 
 interface SelectContentState {
-    select: Option.Select
+    select: Option.SelectOption
     logic: SelectLogic
     nodeId: string
     targetId: string
@@ -60,7 +60,7 @@ class SelectContent extends React.PureComponent<SelectContentProps, SelectConten
 
     initialization(target: OptionTarget, options, graphic) {
         const id: string = target.target.id;
-        const select: Option.Select = options.get(id);
+        const select: Option.SelectOption = options.get(id);
         const ori = id.substr(0, id.length - ".SELECT".length);
         const csi = GraphicParser.collectSelectItems(ori, ori, graphic);
         const node = graphic.get(ori);
@@ -160,7 +160,7 @@ class SelectContent extends React.PureComponent<SelectContentProps, SelectConten
             }
             logic.collect(null);
 
-            const select: Option.Select = options.get(nid + ".SELECT");
+            const select: Option.SelectOption = options.get(nid + ".SELECT");
             select.selects = node.selects.keySeq().toArray();
             select.named = node.named;
             select.groupby = node.groupbys;
@@ -198,8 +198,8 @@ class SelectContent extends React.PureComponent<SelectContentProps, SelectConten
         const { selectables, select, targetId, nodeId, group, db, logic } = this.state;
         const buttonStyle = { lineHeight: "48px" };
         const selected = logic ? logic.collect(nodeId) : immutable.OrderedMap<string, TraceField>();
-        const orderbys = logic ? logic.orders(nodeId) : new Order();
-        const gourpbys = logic ? logic.groups(nodeId) : new Group();
+        const orderbys = logic ? logic.orders(nodeId) : new OrderOption();
+        const gourpbys = logic ? logic.groups(nodeId) : new GroupOption();
         return (
             <div className="option-select">
                 <ScrollTabs /* tabType={'scrollable-buttons'} */ className={'option-select-tabs'} onChange={this.tabChange.bind(this)}>

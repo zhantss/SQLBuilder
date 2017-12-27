@@ -21,7 +21,7 @@ import { GraphicParser } from '../../../../../common/data/utils'
 import { Expression, AtomExpression, Value, Column, Function } from '../../../../../common/data/define/expression'
 import { Alias } from '../../../../../common/data/define/extra'
 import { Option } from '../../../../../common/data/option'
-import { Translate, ConnectAtomOption, GroupParentheses } from '../../../../../common/data/option/translate'
+import { Translate } from '../../../../../common/data/option/translate'
 import { TraceSelectItem, TraceField } from '../../../../../common/data/option/traceability'
 
 interface RichFieldListProps {

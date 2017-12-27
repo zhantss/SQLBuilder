@@ -12,37 +12,37 @@ export interface Option {
 
 }
 
-export class Table implements Option {
-    items: Array<SelectableExpression>
-    //mirros: Array<string>
+//export class TableOption implements Option {
+//   items: Array<SelectableExpression>
+//mirros: Array<string>
 
-    constructor(items?: Array<SelectableExpression>) {
-        this.items = items ? items : [];
-        //this.stringMirror();
-    }
+//   constructor(items?: Array<SelectableExpression>) {
+//       this.items = items ? items : [];
+//this.stringMirror();
+//   }
 
-    /* stringMirror() {
-        const mirros = new Array<string>();
-        this.items.forEach(item => {
-            if (item instanceof Column) {
-                mirros.push(item.column);
-            } else {
-                mirros.push(item.toString());
-            }
-        })
-        this.mirros = mirros;
-    } */
-}
+/* stringMirror() {
+    const mirros = new Array<string>();
+    this.items.forEach(item => {
+        if (item instanceof Column) {
+            mirros.push(item.column);
+        } else {
+            mirros.push(item.toString());
+        }
+    })
+    this.mirros = mirros;
+} */
+//}
 
 export function arrayToOrder(obis: Array<OrderByItem>) {
-    const order = new Order();
+    const order = new OrderOption();
     obis.forEach(obi => {
         order.push(obi)
     })
     return order;
 }
 
-export class Order {
+export class OrderOption {
     private items?: immutable.Map<string, OrderByItem>
     private order: immutable.List<string>
 
@@ -65,7 +65,7 @@ export class Order {
         return this.items.has(id);
     }
 
-    sequence() : immutable.List<OrderByItem>{
+    sequence(): immutable.List<OrderByItem> {
         const sequence = immutable.List<OrderByItem>();
         return immutable.List<OrderByItem>(this.order.toArray().map(o => {
             return this.items.get(o);
@@ -84,7 +84,7 @@ export class OrderByItem {
     }
 }
 
-export class Group {
+export class GroupOption {
     private items?: immutable.Map<string, TraceField>
     private group: immutable.List<string>
 
@@ -107,7 +107,7 @@ export class Group {
         return this.items.has(id);
     }
 
-    sequence() : immutable.List<TraceField>{
+    sequence(): immutable.List<TraceField> {
         const sequence = immutable.List<TraceField>();
         return immutable.List<TraceField>(this.group.toArray().map(o => {
             return this.items.get(o);
@@ -115,14 +115,14 @@ export class Group {
     }
 }
 
-export class Select implements Option {
+export class SelectOption implements Option {
     key: string
     selects?: Array<string>
     named?: immutable.Map<string, string>
     where?: Array<Translate>
-    groupby?: Group
+    groupby?: GroupOption
     having?: Array<Translate>
-    orderby?: Order
+    orderby?: OrderOption
     // TODO DISTINCT/EXCEPT/INTERSECT/EXPLAIN
 
     constructor(key: string) {
@@ -130,12 +130,12 @@ export class Select implements Option {
         this.selects = new Array<string>();
         this.named = immutable.Map<string, string>();
         this.where = new Array<Translate>();
-        this.groupby = new Group();
-        this.orderby = new Order();
+        this.groupby = new GroupOption();
+        this.orderby = new OrderOption();
     }
 }
 
-export class Join implements Option {
+export class JoinOption implements Option {
     mode?: JoinMode
     on?: Array<Translate>
     using?: Array<string>
@@ -160,7 +160,7 @@ export class SetOperators implements Option {
     // TODO Fetch
 }
 
-export function tableConstructorByDataModel(data: DataModel.Data.Model) {
+/* export function tableConstructorByDataModel(data: DataModel.Data.Model) {
     const list = new Array<SelectableExpression>();
     if (data == null || !(data instanceof DataModel.Data.Model)) {
         return list;
@@ -211,4 +211,4 @@ export function tableConstructorBySQL(sql: string) {
         list.push(new SelectableExpression(new Column(f.name)));
     })
     return list;
-}
+} */

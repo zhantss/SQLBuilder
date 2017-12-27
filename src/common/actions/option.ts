@@ -4,6 +4,7 @@ import { OptionTarget, OptionType, OptionPosition } from '../data/option'
 const pre = 'OPTION_';
 
 const $types = {
+    CREATE: 'CREATE',
     TARGET: 'TARGET',
     VISABLE: 'VISABLE',
     PUSH: 'PUSH',
@@ -14,6 +15,7 @@ const $types = {
 }
 
 const actions = {
+    CREATE: ['data'],
     TARGET: ['target'],
     VISABLE: ['visable'],
     PUSH: ['title', 'optionType', 'optionTarget', 'position'],
@@ -28,6 +30,7 @@ const $dispatch = createActionDispatch(pre, actions);
 
 
 interface $actions {
+    CREATE(data: any): any
     TARGET(target: OptionTarget): any
     VISABLE(visbale: boolean): any
     PUSH(title: string, optionType: OptionType, optionTarget: OptionTarget, position: OptionPosition): any

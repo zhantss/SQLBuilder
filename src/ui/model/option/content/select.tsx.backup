@@ -14,7 +14,7 @@ import { option as optionAction, graphic as graphicAction } from '../../../../co
 import { JoinMode, modes } from '../../../../common/data/define/set'
 import { Option, OptionTarget } from '../../../../common/data/option'
 import { Expression, OptionOperator, Column } from '../../../../common/data/define/expression'
-import { Translate, ConnectAtomOption, GroupParentheses } from '../../../../common/data/option/translate'
+import { Translate } from '../../../../common/data/option/translate'
 
 import Isolation from '../../../common/isolation/isolation'
 import MixingMutiSelect from './utils/mixingMutiSelect'

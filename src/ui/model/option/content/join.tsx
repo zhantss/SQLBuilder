@@ -22,7 +22,7 @@ import { option as optionAction } from '../../../../common/actions'
 import { JoinMode, modes } from '../../../../common/data/define/set'
 import { Option, OptionTarget } from '../../../../common/data/option'
 import { Expression, OptionOperator } from '../../../../common/data/define/expression'
-import { Translate, ConnectAtomOption, GroupParentheses } from '../../../../common/data/option/translate'
+import { Translate } from '../../../../common/data/option/translate'
 import ExpressionList from './utils/expressionList'
 import Select from './utils/select'
 import { TraceField, Creater } from '../../../../common/data/option/traceability';
@@ -36,7 +36,7 @@ interface JoinContentProps {
 
 interface JoinContentState {
     using: boolean
-    join: Option.Join
+    join: Option.JoinOption
     db: immutable.Map<string, immutable.List<TraceField>>
     group: immutable.Map<string, Creater>
 }
@@ -57,7 +57,7 @@ class JoinContent extends React.PureComponent<JoinContentProps, JoinContentState
         const idb = this.itemDBLoad();
         return {
             using: false,
-            join: new Option.Join(),
+            join: new Option.JoinOption(),
             group: idb.group,
             db: idb.db
         }
@@ -132,10 +132,10 @@ class JoinContent extends React.PureComponent<JoinContentProps, JoinContentState
         if (target.target && target.addition) {
             target.addition.forEach(el => {
                 if (el && el.id) {
-                    let join: Option.Join = options.get(el.id);
-                    if (join == null) { join = new Option.Join() }
+                    let join: Option.JoinOption = options.get(el.id);
+                    if (join == null) { join = new Option.JoinOption() }
                     else {
-                        let nj = new Option.Join();
+                        let nj = new Option.JoinOption();
                         // nj.mode = join.mode;
                         nj.isUsing = join.isUsing;
                         nj.using = join.using
@@ -170,7 +170,7 @@ class JoinContent extends React.PureComponent<JoinContentProps, JoinContentState
                     const addition = el.id;
                     let join = options.get(addition);
                     if (join == null) {
-                        join = new Option.Join();
+                        join = new Option.JoinOption();
                     }
                     const targetId = target.target.id.substr(0, addition.length - ".JOIN".length);
                     const nodeId = addition.substr(0, addition.length - ".JOIN".length);

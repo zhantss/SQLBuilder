@@ -19,7 +19,6 @@ import PowerBtn from './powerBtn'
 import { SQLBuilder } from '../../common/data/utils/sqlbuilder2'
 
 import '../stylesheet/model.scss'
-import { parser } from '../../common/data/utils/sqlparser';
 
 interface ModelPanelProps {
     graphic: any
@@ -109,5 +108,5 @@ export default connect(
 export default connect2(null, {
     'graphic': ['graphic'],
     'options' : ['option', 'options'],
-    'result' : null,
+    'result' : null
 })(ModelPanel)

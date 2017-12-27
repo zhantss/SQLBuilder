@@ -285,6 +285,12 @@ const graphic = create(init, {
             return state.setIn(['key'], action.key);
         }
         return state;
+    },
+    [action.$types.CREATE](state, action) {
+        if(action && action.data) {
+            return immutable.fromJS(action.data);
+        }
+        return state;
     }
 });
 

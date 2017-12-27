@@ -23,7 +23,7 @@ class JoinTrigger extends React.PureComponent<JoinTriggerProps> {
         let action: optionAction.$actions = option;
         const key = node.get('key');
         const joinKey = key + ".JOIN";
-        const optionJoin = new Option.Join();
+        const optionJoin = new Option.JoinOption();
         action.SUBMIT(joinKey, optionJoin);
     }
 

@@ -49,6 +49,12 @@ const option = create(init, {
     [action.$types.DROP](state, action) {
         state = state.delete('title').delete('type').delete('target').set('visable', false);
         return state;
+    },
+    [action.$types.CREATE](state, action) {
+        if(action && action.data) {
+            return immutable.fromJS(action.data);
+        }
+        return state;
     }
 });
 

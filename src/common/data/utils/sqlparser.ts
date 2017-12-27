@@ -37,3 +37,25 @@ export function getSelectItems(sql: string): Array<Field> {
     }
     return null;
 }
+
+export function convertToState(sql: string, state) {
+    try {
+        const type: any = yy;
+        const last: any = parse(sql);
+        const statement = last.statements[0];
+        if (statement && statement instanceof type.Select) {
+
+        }
+    } catch (error) {
+        
+    }
+
+}
+
+function convertSelect(select, state) {
+    const from = select.from;
+    const columns = select.columns;
+
+    const joins = select.joins;
+    
+}

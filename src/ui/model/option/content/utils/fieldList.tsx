@@ -1,4 +1,4 @@
-import * as React from 'react'
+/* import * as React from 'react'
 import * as classnames from 'classnames'
 import * as uuid from 'uuid'
 
@@ -22,7 +22,7 @@ import { SelectableExpression } from '../../../../../common/data/option/selectab
 
 
 interface FieldListProps {
-    table: Option.Table
+    table: Option.TableOption
     flush(items: Array<SelectableExpression>): any
     className?: any
 }
@@ -132,4 +132,4 @@ class FieldList extends React.PureComponent<FieldListProps> {
     }
 }
 
-export default FieldList
+export default FieldList */

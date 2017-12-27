@@ -22,13 +22,13 @@ import { GraphicParser } from '../../../../../common/data/utils'
 import { Expression, AtomExpression, Value, Column, Function } from '../../../../../common/data/define/expression'
 import { Alias } from '../../../../../common/data/define/extra'
 import { Option } from '../../../../../common/data/option'
-import { Translate, ConnectAtomOption, GroupParentheses } from '../../../../../common/data/option/translate'
+import { Translate } from '../../../../../common/data/option/translate'
 import { TraceSelectItem, TraceField } from '../../../../../common/data/option/traceability'
-import { Group } from '../../../../../common/data/option/option'
+import { GroupOption } from '../../../../../common/data/option/option'
 
 interface GroupListProps {
     // addins: immutable.Map<string, TraceField>
-    group: Group
+    group: GroupOption
     nodeId: string
     className?: any
 }
@@ -51,11 +51,11 @@ class GroupList extends React.PureComponent<GroupListProps, GroupListState> {
         this.state = this.initialization(this.props.group);
     }
 
-    initialization(group: Group) {
+    initialization(group: GroupOption) {
         return this.mapping(immutable.Map<number, TraceSelectItem>(), /* immutable.Map<string, number>(),  */immutable.Map<string, number>(), group);
     }
 
-    mapping(items: immutable.Map<number, TraceSelectItem>, /* exists: immutable.Map<string, number>, */ unique: immutable.Map<string, number>, group: Group) {
+    mapping(items: immutable.Map<number, TraceSelectItem>, /* exists: immutable.Map<string, number>, */ unique: immutable.Map<string, number>, group: GroupOption) {
         // let { items, exists } = this.state;
         const { nodeId } = this.props;
         let groups = group.sequence().toArray();
@@ -138,10 +138,10 @@ class GroupList extends React.PureComponent<GroupListProps, GroupListState> {
 
     // private desc: immutable.Map<string, any> = immutable.Map<string, any>()
 
-    public collect(): Group {
+    public collect(): GroupOption {
         const { nodeId } = this.props;
         const { items } = this.state;
-        const group = new Group();
+        const group = new GroupOption();
         const upper: Array<TraceField> = [];
         for (let x = 0; x < items.size; x++) {
             const item = items.get(x);

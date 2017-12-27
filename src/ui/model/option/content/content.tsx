@@ -5,7 +5,7 @@ import { cn } from '../../../text'
 import { connect2 } from '../../../../common/connect'
 import { OptionType, OptionTarget } from '../../../../common/data/option'
 import JoinContent from './join'
-import TableContent from './table'
+// import TableContent from './table'
 import SelectContent from './select'
 
 interface OptionContentProps {
@@ -23,7 +23,7 @@ class OptionContent extends React.PureComponent<OptionContentProps> {
     content() {
         const { type } = this.props;
         switch(type) {
-            case OptionType.SOURCE: {
+            /* case OptionType.SOURCE: {
                 // TODO
                 // Table Alias/SELECT ITEMs & Alias
                 return <TableContent />;
@@ -32,7 +32,7 @@ class OptionContent extends React.PureComponent<OptionContentProps> {
                 // TODO
                 // similar for SOURCE
                 return <TableContent />;
-            }
+            } */
             case OptionType.SELECT: {
                 // TODO
                 // SELECT Alias/SELECT ITEMs & Alias/Where/Group/Order

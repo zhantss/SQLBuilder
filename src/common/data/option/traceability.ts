@@ -11,7 +11,7 @@ export class TraceSelectItem {
     index?: number
     alias: Alias
     item: AtomExpression
-    private traceField: TraceField
+    /* private  */traceField: TraceField
     constructor(item: AtomExpression, alias: Alias, traceField?: TraceField) {
         this.item = item;
         this.alias = alias;

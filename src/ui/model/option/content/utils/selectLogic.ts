@@ -3,7 +3,7 @@ import { Option, OptionTarget } from '../../../../../common/data/option'
 import { SQLParser, GraphicParser } from '../../../../../common/data/utils'
 import { TraceSelectItem, TraceField, Creater, DataSource, Trace } from '../../../../../common/data/option/traceability'
 import { SelectItem, Alias } from '../../../../../common/data/define/extra'
-import { Order, OrderByItem, Group } from '../../../../../common/data/option/option'
+import { OrderOption, OrderByItem, GroupOption } from '../../../../../common/data/option/option'
 import { Translate, translateExtract } from '../../../../../common/data/option/translate';
 
 export class SelectNode {
@@ -16,14 +16,14 @@ export class SelectNode {
     tfs: immutable.Map<string, TraceField>
     appends: immutable.Map<string, TraceField>
     selects: immutable.OrderedMap<string, boolean>
-    groupbys: Group
-    orderbys: Order
+    groupbys: GroupOption
+    orderbys: OrderOption
     where: Array<Translate>
     having: Array<Translate>
     named: immutable.Map<string, string>
     anamed: immutable.Map<string, string>
 
-    constructor(node: any, select: Option.Select) {
+    constructor(node: any, select: Option.SelectOption) {
         this.node = node;
         const key = node.get('key');
         const identity = node.get('identity');
@@ -288,7 +288,7 @@ export class SelectLogic {
     private loadNode(nodeId: string, options: any, graphic: any) {
         const node = graphic.get(nodeId);
         if (node) {
-            const select: Option.Select = options.get(nodeId + ".SELECT");
+            const select: Option.SelectOption = options.get(nodeId + ".SELECT");
             const selectNode = new SelectNode(node, select);
             this.nodes = this.nodes.set(nodeId, selectNode);
             const nodes = node.get('nodes');
@@ -395,7 +395,7 @@ export class SelectLogic {
         }
     }
 
-    groups(orderId: string): Group {
+    groups(orderId: string): GroupOption {
         let res = immutable.Map<string, TraceField>();
         if (this.nodes.has(orderId)) {
             const groupbys = this.nodes.get(orderId).groupbys;
@@ -403,7 +403,7 @@ export class SelectLogic {
                 return groupbys;
             }
         }
-        return new Group();
+        return new GroupOption();
     }
 
     orderby(orderId: string, fields: Array<TraceField>) {
@@ -422,14 +422,14 @@ export class SelectLogic {
         }
     }
 
-    orders(orderId: string): Order {
+    orders(orderId: string): OrderOption {
         if (this.nodes.has(orderId)) {
             const orderbys = this.nodes.get(orderId).orderbys;
             if (orderbys) {
                 return orderbys;
             }
         }
-        return new Order();
+        return new OrderOption();
     }
 
     collect(collectId: string): immutable.OrderedMap<string, TraceField> {
