@@ -4,15 +4,15 @@ import url from './url'
 import API from './api'
 
 function getGroup() {
-    return axios.get(url.get_resources_group);
+    return axios.post(url.get_resources_group);
 }
 
 function getModel() {
-    return axios.get(url.get_resources_model);
+    return axios.post(url.get_resources_model);
 }
 
 function getSource() {
-    return axios.get(url.get_resources_source);
+    return axios.post(url.get_resources_source);
 }
 
 function api(data) {

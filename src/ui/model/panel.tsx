@@ -5,7 +5,7 @@ import * as immutable from 'immutable'
 
 import * as classnames from 'classnames'
 
-import { graphic as graphicAction, result as resultAction } from '../../common/actions'
+import { graphic as graphicAction, result as resultAction, sync as sycnAction } from '../../common/actions'
 import { cn } from '../text'
 import { DataModel, DataDefine } from '../../common/data'
 import { connect2 } from '../../common/connect'
@@ -19,6 +19,7 @@ import PowerBtn from './powerBtn'
 import { SQLBuilder } from '../../common/data/utils/sqlbuilder2'
 
 import '../stylesheet/model.scss'
+import { serialize } from '../../common/utils/serialization';
 
 interface ModelPanelProps {
     graphic: any
@@ -32,30 +33,58 @@ class ModelPanel extends React.PureComponent<ModelPanelProps> {
         margin: "0 12px"
     }
 
-    testsql() {
+    build() {
         const { graphic, options, actions } = this.props;
         const entrances = graphic.get('entrances');
         const graphicx = graphic.get('graphic');
-        if(entrances && graphicx && options) {
+        if (entrances && graphicx && options) {
             const selects = [];
+            const sync: sycnAction.$actions = actions.sync;
+            sync.SYNC(cn.sync_dialog_builder);
+            const errors = [];
             entrances.forEach(entrance => {
                 try {
                     const builder = new SQLBuilder(entrance, options, graphicx);
-                    const select = builder.build();
+                    const build = builder.build2();
+                    const select = build.statement;
+                    // const select = builder.build();
                     const sql = select.toString();
+                    const items = builder.collectTopItems();
                     /* try {
                         console.log(parser(sql));
                     } catch (error) {
                         console.error(error);
                     } */
-                    selects.push(sql);
-                } catch(error) {
-                    const ep = graphicx.get(entrance).get('name') + "SQL Build ERROR, ERROR: " + error;
-                    selects.push(ep);
-                    console.error(ep);
+                    const state = {
+                        graphic: {
+                            entrances: [entrance],
+                            graphic: build.graphics
+                        },
+                        option: {
+                            options: build.options
+                        }
+                    }
+                    selects.push({
+                        sql: sql,
+                        items: items,
+                        entrance: entrance,
+                        serialize: serialize(state)
+                    });
+                } catch (error) {
+                    // const ep = graphicx.get(entrance).get('name') + "SQL Build ERROR, ERROR: " + error;
+                    // selects.push(ep);
+                    const ex = graphicx.get(entrance).get('name') + ": SQL Build ERROR";
+                    errors.push(ex);
+                    console.log(ex);
+                    console.error(error);
                 }
             });
-            if(selects.length > 0) {
+            if(errors.length > 0) {
+                sync.SYNC(cn.sync_dialog_builder_error);
+            } else {
+                sync.END();
+            }
+            if (selects.length > 0) {
                 const action: resultAction.$actions = actions.result;
                 action.BUILD(selects);
             }
@@ -74,7 +103,7 @@ class ModelPanel extends React.PureComponent<ModelPanelProps> {
                             <PowerBtn content={cn.model_header_btn_union} style={this.btnStyle} powerType={DataModel.Data.DataType.SETOPERATORS} disabled={true} />
                             <FlatButton label={cn.model_header_btn_cancel} style={this.btnStyle} disabled={true} />
                             <FlatButton label={cn.model_header_btn_redo} style={this.btnStyle} disabled={true} />
-                            <FlatButton label={cn.model_test_sql} style={this.btnStyle} onTouchTap={this.testsql.bind(this)}/>
+                            <FlatButton label={cn.model_test_sql} style={this.btnStyle} onTouchTap={this.build.bind(this)} />
                         </div>
                     }>
 
@@ -107,6 +136,7 @@ export default connect(
 
 export default connect2(null, {
     'graphic': ['graphic'],
-    'options' : ['option', 'options'],
-    'result' : null
+    'options': ['option', 'options'],
+    'result': null,
+    'sync': null
 })(ModelPanel)

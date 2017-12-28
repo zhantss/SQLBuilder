@@ -36,20 +36,20 @@ app.get('/test', function (req, res) {
 
 app.post('/get/model/init', function (req, res) {
     if (req.body && req.body.modelId) {
-        console.log(req.body.modelId)
+        // console.log(req.body.modelId)
         res.send(data_init)
     } else {
         res.send({ error: "no model id" })
     }
 });
 
-app.get('/get/resources/group', function (req, res) {
+app.post('/get/resources/group', function (req, res) {
     res.send(data_groups)
 });
-app.get('/get/resources/model', function (req, res) {
+app.post('/get/resources/model', function (req, res) {
     res.send(data_models)
 });
-app.get('/get/resources/source', function (req, res) {
+app.post('/get/resources/source', function (req, res) {
     res.send(data_sources)
 });
 

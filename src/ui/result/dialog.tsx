@@ -14,9 +14,10 @@ import CircularProgress from 'material-ui/CircularProgress'
 import { connect2 } from '../../common/connect'
 import { result as resultAction } from '../../common/actions'
 import DataTable from './datatable'
-import * as X from '../model/option/content/utils/input'
+import SaveForm from './saveform'
 
 import { cn } from '../text/index'
+import { TraceField } from '../../common/data/option/traceability';
 
 interface ResultDialogProps {
     result: any
@@ -25,7 +26,12 @@ interface ResultDialogProps {
 
 interface ResultDialogState {
     step: string
-    sql: Array<string>
+    sql: Array<{
+        sql: string,
+        items: Array<TraceField>
+        entrance: string,
+        serialize: any
+    }>
     open: boolean
     result: any
     loading: boolean
@@ -39,6 +45,7 @@ class ResultDialog extends React.PureComponent<ResultDialogProps, ResultDialogSt
             step: "check",
             ...this.process(props)
         }
+        this.forms = immutable.Map<string, SaveForm>();
     }
 
     process(props) {
@@ -73,20 +80,26 @@ class ResultDialog extends React.PureComponent<ResultDialogProps, ResultDialogSt
         action.PREVIEW({ index, sql });
     }
 
+    forms: immutable.Map<string, SaveForm>
+
     save() {
         const { actions } = this.props;
         const { sql } = this.state;
 
         const action: resultAction.$actions = actions.result;
-        const sqls = {};
-        this.saves.entrySeq().forEach(e => {
+        const sqls = [];
+        this.forms.valueSeq().forEach(f => {
+            const form = f.collect();
+            sqls.push(form);
+        })
+        /* this.saves.entrySeq().forEach(e => {
             const index: number = e[0];
             const text: TextField = e[1];
             if (sql && sql[index] && text) {
                 let name = text.getValue();
                 sqls[name] = sql[index];
             }
-        })
+        }) */
         action.SAVE({ sqls: sqls });
     }
 
@@ -94,7 +107,7 @@ class ResultDialog extends React.PureComponent<ResultDialogProps, ResultDialogSt
         const { sql, result } = this.state;
         const index = parseInt(tab.props['data-index']);
         if (index != null && !isNaN(index) && sql[index] && result.get(index) == null) {
-            this.query(index, sql[index]);
+            this.query(index, sql[index].sql);
         }
     }
 
@@ -108,7 +121,7 @@ class ResultDialog extends React.PureComponent<ResultDialogProps, ResultDialogSt
         const { sql, result } = this.state;
         const index = 0;
         if (index != null && !isNaN(index) && sql[index] && result.get(index) == null) {
-            this.query(index, sql[index]);
+            this.query(index, sql[index].sql);
         }
     }
 
@@ -220,9 +233,9 @@ class ResultDialog extends React.PureComponent<ResultDialogProps, ResultDialogSt
                 <Tabs style={{ flex: 1 }}>
                     {sql ? sql.map((s, index) => {
                         return <Tab key={index} label={"SQL " + index} onActive={this.handelActive.bind(this)} data-index={index}>
-                            <p>{s}</p>
+                            <p>{s.sql}</p>
                             {result && result.get(index) ?
-                                <DataTable index={index} sql={s} result={result.get(index)} />
+                                <DataTable index={index} sql={s.sql} result={result.get(index)} />
                                 : null}
                         </Tab>
                     }) : null}
@@ -232,17 +245,17 @@ class ResultDialog extends React.PureComponent<ResultDialogProps, ResultDialogSt
                 minHeight: "500px",
                 // visibility: step == "save" ? "visible" : "hidden",
                 display: step == "save" ? "flex" : "none",
-                alignItems: "flex-start",
-                flexDirection: "column"
+                // alignItems: "flex-start",
+                // flexDirection: "column"
             }}>
-                {
-                    sql ? sql.map((s, index) => {
-                        return <div key={index} style={{ flex: 1 }}>
-                            <TextField key={index} name={uuid.v4()} defaultValue={"SQL " + index} ref={x => { this.saves = this.saves.set(index, x) }} />
-                            <p>{s}</p>
-                        </div>
-                    }) : null
-                }
+                <Tabs style={{ flex: 1 }}>
+                    {sql ? sql.map((s, index) => {
+                        return <Tab key={index} label={"SQL " + index} onActive={this.handelActive.bind(this)} data-index={index}>
+                            <p>{s.sql}</p>
+                            <SaveForm sql={s} ref={x => { this.forms = this.forms.set(s.entrance, x) }} />
+                        </Tab>
+                    }) : null}
+                </Tabs>
             </div>
             <div style={{
                 minHeight: "500px",
@@ -252,12 +265,14 @@ class ResultDialog extends React.PureComponent<ResultDialogProps, ResultDialogSt
                 justifyContent: "center"
             }}>
                 {
-                    loading == null ? <div style={{
-                        flex: 1,
-                        textAlign: "center"
-                    }}>
-                        <i className="material-icons" style={{ fontSize: "100px" }}>clear</i>
-                    </div> : loading ?
+                    loading == null ?
+                        <div style={{
+                            flex: 1,
+                            textAlign: "center"
+                        }}>
+                            <i className="material-icons" style={{ fontSize: "100px" }}>clear</i>
+                        </div>
+                        : loading ?
                             <CircularProgress size={100} thickness={7} />
                             : <div style={{
                                 flex: 1,

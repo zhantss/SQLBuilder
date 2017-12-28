@@ -30,7 +30,7 @@ class SyncDialog extends React.PureComponent<SyncDialogProps> {
             <FlatButton
                 label="Close"
                 primary={true}
-                onClick={this.handleClose}
+                onClick={this.handleClose.bind(this)}
             />
         ];
 
@@ -39,7 +39,7 @@ class SyncDialog extends React.PureComponent<SyncDialogProps> {
             actions={actions}
             modal={false}
             open={sync.get('dialog')}
-            onRequestClose={this.handleClose}
+            onRequestClose={this.handleClose.bind(this)}
         >
             { sync.get('info') ? sync.get('info') : cn.sync_dialog_info }
         </Dialog>

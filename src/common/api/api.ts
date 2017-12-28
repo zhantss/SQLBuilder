@@ -1,14 +1,24 @@
 import axios from 'axios'
 
 import context from './context'
+import { urlparams } from '../utils/urlparams'
 
 axios.interceptors.request.use(config => {
     const { data, method } = config;
     config.timeout = 10000;
-    if (method == 'post' && data) {
+    if (method == 'post') {
+        let request = null;
+        if(data) {
+            request = {...data, urlparams};
+        } else {
+            request = {
+                urlparams
+            }
+        }
+        
         const params = new URLSearchParams();
-        Object.keys(data).forEach(name => {
-            let value = data[name];
+        Object.keys(request).forEach(name => {
+            let value = request[name];
             if(typeof value != 'string') {
                 value = JSON.stringify(value);
             }

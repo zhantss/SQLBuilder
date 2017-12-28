@@ -20,7 +20,7 @@ actionTypeProcess(pre, $types);
 const $dispatch = createActionDispatch(pre, actions);
 
 interface $actions {
-    BUILD(sql: Array<string>): any
+    BUILD(sql: Array<any>): any
     HIDE(): any
     PREVIEW({ index: number, sql: string }): any,
     SAVE({ sqls : any }): any

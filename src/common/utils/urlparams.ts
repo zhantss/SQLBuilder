@@ -1,4 +1,4 @@
-export default (): Object => {
+function urlparser(): Object {
     let params = {};
     let search = window.location.search;
     if (search && search.length > 0) {
@@ -14,4 +14,19 @@ export default (): Object => {
         })
     }
     return params;
+}
+
+let params = urlparser();
+const urlparams = {};
+Object.keys(params).forEach(k => {
+    try {
+        urlparams[k] = JSON.parse(params[k]);
+    } catch (error) {
+        urlparams[k] = params[k];
+    }
+})
+
+export {
+    urlparser,
+    urlparams
 }
