@@ -83,6 +83,7 @@ const graphic = create(init, {
     [action.$types.DELETE](state, action) {
         if (action && action.nodeKey) {
             let graphic = state.get('graphic');
+            let entrances = state.get('entrances');
             if (graphic) {
                 const currentNode = graphic.get(action.nodeKey);
                 const orginalParentKey = currentNode.get('parent');
@@ -102,6 +103,11 @@ const graphic = create(init, {
                         }
                     }
                 }
+
+                entrances = entrances.filterNot((value) => {
+                    return value == action.nodeKey;
+                })
+                state = state.set("entrances", entrances);
 
                 graphic = graphic.filterNot((v, k) => {
                     const path = v.get('path');

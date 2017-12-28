@@ -10,10 +10,10 @@ function initialization(store: Store<{}>) {
     const params = urlparams;
     let init = null;
     if (params && params[urlrequired]) {
-        store.dispatch({ type: "SYNC_SYNC", info: cn.sync_dialog_info });
         try {
             init = params[urlrequired];
             if (init.modelId) {
+                store.dispatch({ type: "SYNC_SYNC", info: cn.sync_dialog_info });
                 axios.post(url.get_model_init, { modelId: init.modelId })
                     .then(response => {
                         const data = response.data;

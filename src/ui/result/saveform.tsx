@@ -230,7 +230,7 @@ class SaveForm extends React.PureComponent<SaveFormProps, SaveFormState> {
                                             elementHeight={42}
                                             hintTextAutocomplete={"search"}
                                             value={!disabled && values[code] ? values[code] : null}
-                                            style={{ minWidth: 150, marginTop: 10, marginBottom: 8, marginRight: 10, width: "20%" }}
+                                            style={{ minWidth: 260, marginTop: 10, marginBottom: 8, marginRight: 10, width: "20%" }}
                                             underlineStyle={{ display: "none" }}
                                             selectionsRenderer={(values, hintText) => {
                                                 if (!values) {
@@ -284,7 +284,7 @@ class SaveForm extends React.PureComponent<SaveFormProps, SaveFormState> {
                                 hintText={cn.result_sql_form_select + "  " + name}
                                 onChange={this.handleSelect.bind(this)}
                                 value={values[code] ? values[code] : null}
-                                style={{ minWidth: 150, marginTop: 10, marginBottom: 8, marginRight: 10, width: "20%" }}
+                                style={{ minWidth: 260, marginTop: 10, marginBottom: 8, marginRight: 10, width: "20%" }}
                                 underlineStyle={{ display: "none" }}
                                 selectionsRenderer={(values, hintText) => {
                                     if (!values) {
