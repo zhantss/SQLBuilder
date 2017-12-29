@@ -48,6 +48,7 @@ export const result_sql_save = "保存模型"
 export const result_sql_save_loading = "正在保存"
 export const result_sql_form_input = "请输入"
 export const result_sql_form_select = "请选择"
+export const result_Sql_from_required = "必须项"
 
 export const sync_dialog_info = "模型加载中，请稍候..."
 export const sync_dialog_error = "模型加载失败，请重试或联系管理员"

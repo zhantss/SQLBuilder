@@ -34,7 +34,8 @@ interface ResultDialogState {
     }>
     open: boolean
     result: any
-    loading: boolean
+    loading: boolean,
+    form: any
 }
 
 class ResultDialog extends React.PureComponent<ResultDialogProps, ResultDialogState> {
@@ -53,7 +54,8 @@ class ResultDialog extends React.PureComponent<ResultDialogProps, ResultDialogSt
             sql: props.result.get('sql'),
             open: props.result.get('dialog'),
             result: props.result.get('result'),
-            loading: props.result.get('loading')
+            loading: props.result.get('loading'),
+            form: props.result.get('form')
         }
     }
 
@@ -88,9 +90,14 @@ class ResultDialog extends React.PureComponent<ResultDialogProps, ResultDialogSt
 
         const action: resultAction.$actions = actions.result;
         const sqls = [];
+        const nform = {};
         this.forms.valueSeq().forEach(f => {
             const form = f.collect();
-            sqls.push(form);
+
+            if (form && form["entrance"]) {
+                sqls.push(form);
+                nform[form["entrance"]] = form;
+            }
         })
         /* this.saves.entrySeq().forEach(e => {
             const index: number = e[0];
@@ -100,6 +107,7 @@ class ResultDialog extends React.PureComponent<ResultDialogProps, ResultDialogSt
                 sqls[name] = sql[index];
             }
         }) */
+        action.FORM(nform);
         action.SAVE({ sqls: sqls });
     }
 
@@ -167,31 +175,55 @@ class ResultDialog extends React.PureComponent<ResultDialogProps, ResultDialogSt
         if (rn == null) {
 
         } else {
-            this.setState({
-                step: rn
-            })
-            if (rn == "finished") {
-                this.save();
+            let pass = true;
+            if(rn == "finished") {
+                this.forms.valueSeq().forEach(f => {
+                    const fpass = f.validation();
+                    if(!fpass && pass) {
+                        pass = false;
+                    }
+                })
+            }
+            if(pass) {
+                this.setState({
+                    step: rn
+                })
+                if (rn == "finished") {
+                    this.save();
+                }
             }
         }
     }
 
-    render() {
-        const { open, sql, result, loading } = this.state;
+    bottomTool() {
         const { step } = this.state;
-        let actions = step != "finished" ? [
-            <FlatButton
-                label="BACK"
-                primary={true}
-                onClick={this.handelBack.bind(this)}
-            />,
-            <RaisedButton
-                label="NEXT"
-                primary={true}
-                keyboardFocused={true}
-                onClick={this.handleNext.bind(this)}
-            />,
-        ] : [
+        if(step == "check") {
+            return [
+                <RaisedButton
+                    label="NEXT"
+                    primary={true}
+                    keyboardFocused={true}
+                    onClick={this.handleNext.bind(this)}
+                />
+            ]
+        }
+        if(step == "save") {
+            return [
+                <FlatButton
+                    label="BACK"
+                    primary={true}
+                    onClick={this.handelBack.bind(this)}
+                />,
+                <RaisedButton
+                    label="NEXT"
+                    primary={true}
+                    keyboardFocused={true}
+                    onClick={this.handleNext.bind(this)}
+                />,
+            ]
+        }
+        if (step == "finished") {
+            return [
                 <RaisedButton
                     label="OK"
                     primary={true}
@@ -199,6 +231,13 @@ class ResultDialog extends React.PureComponent<ResultDialogProps, ResultDialogSt
                     onClick={this.handleClose.bind(this)}
                 />
             ];
+        }
+    }
+
+    render() {
+        const { open, sql, result, loading, form } = this.state;
+        const { step } = this.state;
+        let actions = this.bottomTool();
         return <Dialog
             title={/* cn.result_sql_title */
                 <div>
@@ -252,7 +291,7 @@ class ResultDialog extends React.PureComponent<ResultDialogProps, ResultDialogSt
                     {sql ? sql.map((s, index) => {
                         return <Tab key={index} label={"SQL " + index} onActive={this.handelActive.bind(this)} data-index={index}>
                             <p>{s.sql}</p>
-                            <SaveForm sql={s} ref={x => { this.forms = this.forms.set(s.entrance, x) }} />
+                            <SaveForm sql={s} init={form && form[s.entrance] ? form[s.entrance] : null} ref={x => { this.forms = this.forms.set(s.entrance, x) }} />
                         </Tab>
                     }) : null}
                 </Tabs>

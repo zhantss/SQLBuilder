@@ -4,9 +4,11 @@ import DEV from '../development'
 
 let result = immutable.fromJS({
     
-    sql: null,
+    sql: [],
 
     dialog : false,
+
+    form: null,
 
     result: {}
 

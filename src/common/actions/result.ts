@@ -6,14 +6,16 @@ const $types = {
     BUILD: 'BUILD',
     HIDE: 'HIDE',
     PREVIEW: 'PREVIEW',
-    SAVE: 'SAVE'
+    SAVE: 'SAVE',
+    FORM: 'FORM'
 }
 
 const actions = {
     BUILD: ['sql'],
     HIDE: [],
     PREVIEW: ['payload'],
-    SAVE: ['payload']
+    SAVE: ['payload'],
+    FORM: ['form']
 }
 
 actionTypeProcess(pre, $types);
@@ -23,7 +25,8 @@ interface $actions {
     BUILD(sql: Array<any>): any
     HIDE(): any
     PREVIEW({ index: number, sql: string }): any,
-    SAVE({ sqls : any }): any
+    SAVE({ sqls: any }): any,
+    FORM(form: any): any
 }
 
 export {

@@ -3,9 +3,20 @@ const options = { "0647351c-d6c7-4ef1-8454-84575141b986.SELECT": { "key": "06473
 const option = {
     options: options
 }
-module.exports = {
-    sql: "SELECT T.NAME, T.AGE, T.SEX, T0.BUSINESS, T0.PROFESSION FROM (SELECT NAME, AGE, SEX, AREA FROM CUSTOM_INFO) T LEFT JOIN (SELECT T.BUSINESS, T.PROFESSION, T.NAME FROM (SELECT NAME, BUSINESS, PROFESSION FROM CUSTOM_DETAIL) T) T0 ON T.NAME = T0.NAME WHERE T.NAME = T0.NAME GROUP BY T.NAME, T.AGE, T.SEX, T0.BUSINESS, T0.PROFESSION HAVING T.NAME = T0.NAME ORDER BY T.NAME ASC, T.AGE ASC, T.SEX ASC",
+const form = {
+    code: "X1",
+    text: "X2",
+    reportUnitTypeCol: "automatic",
+    orgCol: {"identity":"31b1a37b-7c89-4850-b030-84641d21dde5","column":"NAME","alias":null,"datasource":{"identity":"0241ed03-cc39-4480-84e5-db591110aa27","name":"客户个人信息","item":{"column":"NAME","alias":null}}},
+    dateCol: {"identity":"31b1a37b-7c89-4850-b030-84641d21dde5","column":"NAME","alias":null,"datasource":{"identity":"0241ed03-cc39-4480-84e5-db591110aa27","name":"客户个人信息","item":{"column":"NAME","alias":null}}},
+    sql: "SELECT T.NAME, T.AGE, T.SEX, T0.BUSINESS, T0.PROFESSION FROM (SELECT NAME, AGE, SEX, AREA FROM CUSTOM_INFO) T LEFT JOIN (SELECT T.BUSINESS, T.PROFESSION, T.NAME FROM (SELECT NAME, BUSINESS, PROFESSION FROM CUSTOM_DETAIL) T) T0 ON T.NAME = T0.NAME WHERE T.NAME = T0.NAME GROUP BY T.NAME, T.AGE, T.SEX, T0.BUSINESS, T0.PROFESSION HAVING T.NAME = T0.NAME ORDER BY T.NAME ASC, T.AGE ASC, T.SEX ASC"
+}
+const serialize = {
     graphic: graphic,
     option: option
-
+}
+module.exports = {
+    id: "0647351c-d6c7-4ef1-8454-84575141b986",
+    serialize,
+    form
 }

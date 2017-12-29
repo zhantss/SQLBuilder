@@ -38,6 +38,12 @@ const result = create(init, {
         state = state.set('loading', true);
         return state;
     },
+    [action.$types.FORM](state, action) {
+        if(action && action.form) {
+            state = state.set('form', action.form);
+        }
+        return state;
+    },
     [RemoteUtils.ok(action.$types.SAVE)](state, action) {
         state = state.set('loading', false);
         return state;

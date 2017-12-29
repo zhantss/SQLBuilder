@@ -20,7 +20,8 @@ interface SaveFormProps {
         items: Array<TraceField>
         entrance: string,
         serialize: any
-    }
+    },
+    init?: any
 }
 
 interface SaveFormState {
@@ -35,7 +36,8 @@ interface SaveFormState {
         identity: string,
         name: string,
         items: Array<string>
-    }>
+    }>,
+    invalid: any
 }
 
 class SaveForm extends React.PureComponent<SaveFormProps, SaveFormState> {
@@ -47,7 +49,7 @@ class SaveForm extends React.PureComponent<SaveFormProps, SaveFormState> {
     }
 
     initialization(props) {
-        const { sql } = props;
+        const { sql, init } = props;
         const entrance = sql.entrance;
         const values = {};
         let params = urlparams[urlrequired];
@@ -73,7 +75,7 @@ class SaveForm extends React.PureComponent<SaveFormProps, SaveFormState> {
                     identity: tf.trace.datasource.identity,
                     name: tf.trace.datasource.name,
                     item: {
-                        column : tf.trace.datasource.item.content.toString(),
+                        column: tf.trace.datasource.item.content.toString(),
                         alias: tf.trace.datasource.item.alias ? tf.trace.datasource.item.alias.alias : null
                     }
                 }
@@ -98,6 +100,8 @@ class SaveForm extends React.PureComponent<SaveFormProps, SaveFormState> {
             const name = define.name;
             const pre = define.pre;
             const db = define.db;
+            const drequired = define.required;
+            const ddefault = define.default;
             if (hide && code && db) {
                 if (typeof db != 'object') {
                     if (db.startsWith("$url")) {
@@ -112,19 +116,63 @@ class SaveForm extends React.PureComponent<SaveFormProps, SaveFormState> {
                                 values[code] = selectItems;
                             } else if (pos[1] == "sql") {
                                 values[code] = sql.sql;
-                            } else if(pos[1] == "serialize") {
+                            } else if (pos[1] == "serialize") {
                                 values[code] = sql.serialize;
                             }
                         }
                     }
                 }
+            } else if (!hide && code && db && typeof db == 'object' && ddefault) {
+                values[code] = {
+                    value: ddefault,
+                    label: db[ddefault]
+                }
+                if (init && init[code]) {
+                    values[code] = {
+                        value: init[code],
+                        label: db[init[code]]
+                    }
+                }
+            } else if (!hide && code && db && typeof db != 'object' && init && init[code]) {
+                values[code] = {
+                    value: init[code]
+                }
+            } else if (!hide && code && init && init[code]) {
+                values[code] = init[code]
             }
         });
         return {
             values,
             selectItems,
-            group
+            group,
+            invalid: null
         };
+    }
+
+    private emptyValidation(value) {
+        if (value == null) return true;
+        if (value.toString().trim().length == 0) return true;
+    }
+
+    public validation() {
+        const values = this.collect();
+        const invalid = {};
+        let pass = true;
+        Object.keys(required).forEach(s => {
+            const define = required[s];
+            const code = define.code;
+            const pre = define.pre;
+            const drequired = define.required;
+            const disabled = pre != null && (values[pre.key] == null || (values[pre.key] && values[pre.key] != pre.value));
+            if (drequired && !disabled && this.emptyValidation(values[code])) {
+                invalid[code] = true;
+                pass = false;
+            }
+        });
+        this.setState({
+            invalid: invalid
+        })
+        return pass;
     }
 
     componentWillReceiveProps(nextProps) {
@@ -139,6 +187,7 @@ class SaveForm extends React.PureComponent<SaveFormProps, SaveFormState> {
             const code = define.code;
             const hide = define.hide;
             const db = define.db;
+            const pre = define.pre;
             if (hide && values[code] && db) {
                 if (typeof db == 'object') {
 
@@ -153,7 +202,10 @@ class SaveForm extends React.PureComponent<SaveFormProps, SaveFormState> {
                 }
             } else if (!hide) {
                 if (db != null && values[code]) {
-                    nv[code] = values[code].value;
+                    const disabled = pre != null && (values[pre.key] == null || (values[pre.key] && values[pre.key].value != pre.value));
+                    if (!disabled) {
+                        nv[code] = values[code].value;
+                    }
                 } else if (this.formels.has(code)) {
                     const input = this.formels.get(code);
                     if (input instanceof TextField) {
@@ -161,7 +213,8 @@ class SaveForm extends React.PureComponent<SaveFormProps, SaveFormState> {
                     }
                 }
             }
-        })
+        });
+        nv["entrance"] = this.props.sql.entrance;
         return nv;
     }
 
@@ -193,7 +246,7 @@ class SaveForm extends React.PureComponent<SaveFormProps, SaveFormState> {
     }
 
     formRender() {
-        const { values, selectItems, group } = this.state;
+        const { values, selectItems, group, invalid } = this.state;
         const forms = [];
         Object.keys(required).forEach(s => {
             const define = required[s];
@@ -205,7 +258,15 @@ class SaveForm extends React.PureComponent<SaveFormProps, SaveFormState> {
             if (!hide && code) {
                 if (db == null) {
                     forms.push(
-                        <TextField key={code} name={code} hintText={cn.result_sql_form_input + "  " + name} style={{ marginLeft: 20 }} underlineShow={false} ref={x => { this.formels = this.formels.set(code, x); }} />
+                        <TextField
+                            key={code}
+                            name={code}
+                            hintText={cn.result_sql_form_input + "  " + name}
+                            errorText={invalid && invalid[code] ? cn.result_Sql_from_required + "," + cn.result_sql_form_input : null}
+                            defaultValue={values[code] ? values[code] : ""}
+                            style={{ marginLeft: 20 }}
+                            underlineShow={false}
+                            ref={x => { this.formels = this.formels.set(code, x); }} />
                     )
                     forms.push(
                         <Divider key={code + "_d"} />
@@ -224,6 +285,8 @@ class SaveForm extends React.PureComponent<SaveFormProps, SaveFormState> {
                                             disabled={disabled}
                                             checkPosition='left'
                                             hintText={cn.result_sql_form_select + "  " + name}
+                                            errorText={invalid && invalid[code] ? cn.result_Sql_from_required + "," + cn.result_sql_form_select : null}
+                                            errorStyle={{ marginLeft: 20 }}
                                             onChange={this.handleSelect.bind(this)}
                                             showAutocompleteThreshold={2}
                                             autocompleteFilter={this.fuzzyFilter}

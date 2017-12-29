@@ -17,9 +17,12 @@ function initialization(store: Store<{}>) {
                 axios.post(url.get_model_init, { modelId: init.modelId })
                     .then(response => {
                         const data = response.data;
-                        if (data && data.graphic && data.option) {
-                            store.dispatch({ type: "GRAPHIC_CREATE", data: deserialize(data.graphic) });
-                            store.dispatch({ type: "OPTION_CREATE", data: deserialize(data.option) });
+                        if (data && data.id && data.serialize && data.serialize.graphic && data.serialize.option && data.form) {
+                            store.dispatch({ type: "GRAPHIC_CREATE", data: deserialize(data.serialize.graphic) });
+                            store.dispatch({ type: "OPTION_CREATE", data: deserialize(data.serialize.option) });
+                            const form = {};
+                            form[data.id] = data.form;
+                            store.dispatch({ type: "RESULT_FORM", form: form });
                         }
                         store.dispatch({ type: "SYNC_END" })
                     }).catch(error => {

@@ -14,12 +14,14 @@ export default {
     "code": {
         pre: null,
         code: "code",
-        name: "模型代码"
+        name: "模型代码",
+        required: true
     },
     "text": {
         pre: null,
         code: "text",
-        name: "模型名称"
+        name: "模型名称",
+        required: true
     },
     "reportUnitTypeCol": {
         pre: null,
@@ -28,7 +30,9 @@ export default {
         db: {
             "automatic" : "有时间机构维度模式",
             "manual" : "无机构时间维度模式"
-        }
+        },
+        default: "automatic",
+        required: true
     },
     "orgCol" : {
         pre: {
@@ -37,7 +41,8 @@ export default {
         },
         code: "orgCol",
         name: "报表机构维度",
-        db: "$builder.items"
+        db: "$builder.items",
+        required: true
     },
     "dateCol" : {
         pre: {
@@ -46,7 +51,8 @@ export default {
         },
         code: "dateCol",
         name: "报表时间维度",
-        db: "$builder.items"
+        db: "$builder.items",
+        required: true
     },
     "selectItems": {
         pre: null,
