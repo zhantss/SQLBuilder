@@ -127,16 +127,36 @@ class RichFieldList extends React.PureComponent<RichFieldListProps, RichFieldLis
         }
     }
 
-    private alias: immutable.Map<number, any> = immutable.Map<number, any>()
+    // private alias: immutable.Map<number, any> = immutable.Map<number, any>();
+    private aliasInputs: immutable.Map<number, any> = immutable.Map<number, any>();
 
     public collect(): Array<TraceField> {
         const { nodeId } = this.props;
         const { items } = this.state;
         const upper: Array<TraceField> = [];
-        this.alias.entrySeq().forEach(e => {
+        /* this.alias.entrySeq().forEach(e => {
             const index: number = e[0];
             const value: TextField = e[1];
+            if(value == null) { console.log(this.alias.toJS()) }
             const alias = value.getValue();
+            const item = items.get(index);
+            if (item) {
+                const tf = item.getTraceField();
+                if (alias != null && alias.length != 0) {
+                    tf.trace.setDesignation(nodeId, alias);
+                    if (tf.trace.creater.id == nodeId) {
+                        tf.trace.creater.item.alias = new Alias(alias);
+                    }
+                }
+                upper.push(tf);
+            }
+        }) */
+
+        this.aliasInputs.entrySeq().forEach(e => {
+            const index: number = e[0];
+            const value: string = e[1];
+            // if(value == null) { console.log(this.alias.toJS()) }
+            const alias = value;
             const item = items.get(index);
             if (item) {
                 const tf = item.getTraceField();
@@ -150,6 +170,15 @@ class RichFieldList extends React.PureComponent<RichFieldListProps, RichFieldLis
             }
         })
         return upper;
+    }
+
+    private aliasChange(event , value) {
+        if(event && event.currentTarget && event.currentTarget.getAttribute) {
+            const index = parseInt(event.currentTarget.getAttribute('data-index'));
+            if(!isNaN(index)) {
+                this.aliasInputs = this.aliasInputs.set(index, value);
+            }
+        }
     }
 
     private selectRender() {
@@ -180,7 +209,7 @@ class RichFieldList extends React.PureComponent<RichFieldListProps, RichFieldLis
                         cellRenderer={({ rowData, rowIndex }) => {
                             const data: TraceSelectItem = rowData;
                             const alias = data.alias ? data.alias : null;
-                            return <TextField defaultValue={alias ? alias.alias : ""} name={uuid.v4()} ref={x => { this.alias = this.alias.set(rowIndex, x); }} /* onChange={this.aliasChange.bind(this)} data-index={rowData.index} */ />
+                            return <TextField defaultValue={alias ? alias.alias : ""} name={uuid.v4()} data-index={rowIndex} onChange={this.aliasChange.bind(this)} /* ref={x => { this.alias = this.alias.set(rowIndex, x); }} */ />
                         }}
                         dataKey={'alias'}
                         width={200}

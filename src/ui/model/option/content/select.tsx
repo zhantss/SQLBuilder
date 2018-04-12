@@ -190,8 +190,14 @@ class SelectContent extends React.PureComponent<SelectContentProps, SelectConten
         gaction.SELECTS(selects);
     }
 
-    tabChange(a, b, c) {
-
+    tabChange() {
+        // debugger
+        const where = this.where.collectTranslate();
+        const having = this.having.collectTranslate();
+        const { select } = this.state;
+        this.setState({
+            select: { ...select, where, having }
+        })
     }
 
     render() {

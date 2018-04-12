@@ -1,11 +1,11 @@
 import axios from 'axios'
 import * as Actions from '../actions/result'
-import url from './url'
+// import url from './url'
 import API from './api'
 
 function preview(data) {
     const { index, sql } = data;
-    return axios.post(url.sql_model_preview, { index, sql: sql })
+    return axios.post(window.SQLBuilder.url.sql_model_preview, { index, sql: sql })
         .then(response => {
             return response.data;
         }).catch(error => {
@@ -15,7 +15,7 @@ function preview(data) {
 
 function save(data) {
     const { sqls } = data;
-    return axios.post(url.sql_model_save, { sqls })
+    return axios.post(window.SQLBuilder.url.sql_model_save, { sqls })
         .then(response => {
             return response.data;
         }).catch(error => {

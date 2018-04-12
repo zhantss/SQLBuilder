@@ -70,7 +70,7 @@ class Option extends React.PureComponent<OptionProps, OptionState> {
 
     start(event) {
         event.preventDefault();
-        event.stopPropagation();
+        // event.stopPropagation();
         const { left, top } = this.state;
         this.setState({
             move: true,
@@ -81,7 +81,7 @@ class Option extends React.PureComponent<OptionProps, OptionState> {
 
     move(event) {
         event.preventDefault();
-        event.stopPropagation();
+        // event.stopPropagation();
         const { mx, my, left, top, move } = this.state;
         if (!move) return;
         let nl = event.nativeEvent.x + mx;
@@ -94,7 +94,7 @@ class Option extends React.PureComponent<OptionProps, OptionState> {
 
     end(event) {
         event.preventDefault();
-        event.stopPropagation();
+        // event.stopPropagation();
         this.setState({
             move: false
         })

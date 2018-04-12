@@ -126,9 +126,10 @@ class ResultDialog extends React.PureComponent<ResultDialogProps, ResultDialogSt
     }
 
     componentDidUpdate() {
-        const { sql, result } = this.state;
+        const { sql, result, open } = this.state;
+        // console.log(result.toJS());
         const index = 0;
-        if (index != null && !isNaN(index) && sql[index] && result.get(index) == null) {
+        if (sql[index] && result.get(index) == null && open) {
             this.query(index, sql[index].sql);
         }
     }
@@ -176,15 +177,15 @@ class ResultDialog extends React.PureComponent<ResultDialogProps, ResultDialogSt
 
         } else {
             let pass = true;
-            if(rn == "finished") {
+            if (rn == "finished") {
                 this.forms.valueSeq().forEach(f => {
                     const fpass = f.validation();
-                    if(!fpass && pass) {
+                    if (!fpass && pass) {
                         pass = false;
                     }
                 })
             }
-            if(pass) {
+            if (pass) {
                 this.setState({
                     step: rn
                 })
@@ -195,9 +196,23 @@ class ResultDialog extends React.PureComponent<ResultDialogProps, ResultDialogSt
         }
     }
 
+    handleSaveOk() {
+        if (confirm(cn.result_sql_save_close_window_tip)) {
+            if(window.opener && window.opener.sqlbuilder_window_close) {
+                window.opener.sqlbuilder_window_close();
+            } else {
+                window.opener = null;
+                window.open('', '_self');
+                window.close();
+            }
+        } else {
+            
+        }
+    }
+
     bottomTool() {
         const { step } = this.state;
-        if(step == "check") {
+        if (step == "check") {
             return [
                 <RaisedButton
                     label="NEXT"
@@ -207,7 +222,7 @@ class ResultDialog extends React.PureComponent<ResultDialogProps, ResultDialogSt
                 />
             ]
         }
-        if(step == "save") {
+        if (step == "save") {
             return [
                 <FlatButton
                     label="BACK"
@@ -223,13 +238,30 @@ class ResultDialog extends React.PureComponent<ResultDialogProps, ResultDialogSt
             ]
         }
         if (step == "finished") {
+            const { result } = this.props;
+            const success = result.get('success');
+            if (success) {
+                return [
+                    <RaisedButton
+                        label={cn.result_sql_save_close_window}
+                        primary={true}
+                        keyboardFocused={true}
+                        onClick={this.handleSaveOk.bind(this)}
+                    />
+                ]
+            }
             return [
+                <FlatButton
+                    label="BACK"
+                    primary={true}
+                    onClick={this.handelBack.bind(this)}
+                />/* ,
                 <RaisedButton
                     label="OK"
                     primary={true}
                     keyboardFocused={true}
                     onClick={this.handleClose.bind(this)}
-                />
+                /> */
             ];
         }
     }

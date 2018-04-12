@@ -5,7 +5,15 @@ import { urlparams } from '../utils/urlparams'
 
 axios.interceptors.request.use(config => {
     const { data, method } = config;
-    config.timeout = 10000;
+    config.timeout = 3000;
+    if(window.SQLBuilder.axios) {
+        if(window.SQLBuilder.axios.context) {
+            config.baseURL = window.SQLBuilder.axios.context;
+        }
+        if(window.SQLBuilder.axios.timeout) {
+            config.timeout = window.SQLBuilder.axios.timeout;
+        }
+    }
     if (method == 'post') {
         let request = null;
         if(data) {
@@ -29,6 +37,18 @@ axios.interceptors.request.use(config => {
         return config;
     }
     return config;
+})
+
+axios.interceptors.response.use(response => {
+    const data = response.data;
+    if(data.success == true && data.data) {
+        response.data = data.data;
+    } else if(data.success == false) {
+        throw 'request fail';
+    } else if(data.success == null) {
+
+    }
+    return response;
 })
 
 axios.defaults.baseURL = context;

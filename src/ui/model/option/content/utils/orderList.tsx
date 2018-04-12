@@ -114,14 +114,29 @@ class OrderList extends React.PureComponent<OrderListProps, OrderListState> {
 
     onSortEnd({ oldIndex, newIndex }) {
         let { items, unique } = this.state;
+        /* const oe = items.get(oldIndex);
+        const ne = items.get(newIndex); */
+        const diff = newIndex > oldIndex ? -1 : newIndex == oldIndex ? 0 : 1;
+        let curr = newIndex;
         const oe = items.get(oldIndex);
-        const ne = items.get(newIndex);
-        if (oe && ne) {
+        let nitems = immutable.Map<number, ListItem>(items);
+        while(curr != oldIndex) {
+            const ce = items.get(curr);
+            curr = curr + diff;
+            nitems = nitems.set(curr, ce);
+            // items = items.set(curr - 1, ce);
+            unique = unique.set(ce.order.id, curr);
+        }
+        nitems = nitems.set(newIndex, oe);
+        // items = items.set(newIndex, oe);
+        unique = unique.set(oe.order.id, newIndex);
+        items = nitems;
+        /* if (oe && ne) {
             items = items.set(newIndex, oe);
             unique = unique.set(oe.order.id, newIndex);
             items = items.set(oldIndex, ne);
             unique = unique.set(ne.order.id, oldIndex);
-        }
+        } */
         this.setState({
             items, unique
         })
@@ -130,6 +145,11 @@ class OrderList extends React.PureComponent<OrderListProps, OrderListState> {
     rowRenderer(props) {
         const inx = props.index;
         props = { inx: inx, ...props }
+        /* if(props.style) {
+            props.style = { zIndex: 10005, ...props.style }
+        } else {
+            props.style = { zIndex: 10005 }
+        } */
         return <SortableTableRowRenderer {...props} />
     }
 
@@ -156,7 +176,7 @@ class OrderList extends React.PureComponent<OrderListProps, OrderListState> {
         const order = new OrderOption();
         for (let x = 0; x < items.size; x++) {
             const item = items.get(x)
-            if(this.desc.has(item.order.id)) {
+            if (this.desc.has(item.order.id)) {
                 const desc: Select = this.desc.get(item.order.id);
                 item.order.mode = desc.collectValue().index;
             }
@@ -179,6 +199,10 @@ class OrderList extends React.PureComponent<OrderListProps, OrderListState> {
                     noRowsRenderer={this.noRowsRenderer}
                     gridStyle={{ outline: 0 }}
                     helperClass='sortable-helper'
+                    // onSortMove={event => console.log(event)}
+                    // pressDelay={100}
+                    lockAxis={"y"}
+                    lockToContainerEdges={true}
                 >
                     {/* <RV_Column
                         label={'index'}
@@ -191,7 +215,7 @@ class OrderList extends React.PureComponent<OrderListProps, OrderListState> {
                         cellRenderer={({ rowData, rowIndex }) => {
                             const data: ListItem = rowData;
                             const desc = data.order.mode;
-                            return <Select 
+                            return <Select
                                 identity={data.order.id}
                                 name={data.order.id}
                                 init={desc}

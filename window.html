@@ -1,0 +1,25 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>SQL Builder</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script type="text/javascript">
+        var sqlbuilder = null;
+        function sqlbuilder_window_close() {
+            sqlbuilder.close();
+        }
+        function sqlbuilder_window_open() {
+            sqlbuilder = window.open("http://localhost/?init={%22modelId%22:20,%22groupID%22:%22group-id%22,%22connID%22:%22conn-id%22}");
+        }
+        sqlbuilder_window_open();
+    </script>
+</head>
+
+<body>
+
+</body>
+
+</html>

@@ -7,6 +7,13 @@ import create from './create'
 const result = create(init, {
     [action.$types.BUILD](state, action) {
         if(action.sql) {
+            const sql = state.get('sql');
+            for(let i = 0; i < sql.length; i++) {
+                if(i >= action.sql.length || action.sql[i].sql != sql[i].sql) {
+                    debugger
+                    state = state.setIn(['result', i], null);
+                } 
+            }
             state = state.set('sql', action.sql);
             state = state.set('dialog', true);
         }
@@ -14,7 +21,7 @@ const result = create(init, {
     },
     [action.$types.HIDE](state, action) {
         state = state.set('dialog', false);
-        state = state.set('result', immutable.Map({}));
+        // state = state.set('result', immutable.Map({}));
         return state;
     },
     [action.$types.PREVIEW](state, action) {
@@ -46,10 +53,12 @@ const result = create(init, {
     },
     [RemoteUtils.ok(action.$types.SAVE)](state, action) {
         state = state.set('loading', false);
+        state = state.set('success', true);
         return state;
     },
     [RemoteUtils.no(action.$types.SAVE)](state, action) {
         state = state.set('loading', null);
+        state = state.set('success', false);
         return state;
     }
 });

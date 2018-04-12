@@ -10,9 +10,9 @@ import SuperSelectField from 'material-ui-superselectfield'
 
 import { TraceField } from '../../common/data/option/traceability'
 import { cn } from '../text/index'
-import required from '../../common/api/required'
-import urlrequired from '../../common/api/urlrequired'
-import { urlparams } from '../../common/utils/urlparams';
+// import required from '../../common/api/required'
+// import urlrequired from '../../common/api/urlrequired'
+import { urlparams } from '../../common/utils/urlparams'
 
 interface SaveFormProps {
     sql: {
@@ -52,7 +52,7 @@ class SaveForm extends React.PureComponent<SaveFormProps, SaveFormState> {
         const { sql, init } = props;
         const entrance = sql.entrance;
         const values = {};
-        let params = urlparams[urlrequired];
+        let params = urlparams[window.SQLBuilder.urlrequired];
         let group = immutable.Map<string, {
             identity: string,
             name: string,
@@ -93,8 +93,8 @@ class SaveForm extends React.PureComponent<SaveFormProps, SaveFormState> {
                 })
             }
         })
-        Object.keys(required).forEach(s => {
-            const define = required[s];
+        Object.keys(window.SQLBuilder.required).forEach(s => {
+            const define = window.SQLBuilder.required[s];
             const hide = define.hide;
             const code = define.code;
             const name = define.name;
@@ -158,8 +158,8 @@ class SaveForm extends React.PureComponent<SaveFormProps, SaveFormState> {
         const values = this.collect();
         const invalid = {};
         let pass = true;
-        Object.keys(required).forEach(s => {
-            const define = required[s];
+        Object.keys(window.SQLBuilder.required).forEach(s => {
+            const define = window.SQLBuilder.required[s];
             const code = define.code;
             const pre = define.pre;
             const drequired = define.required;
@@ -182,8 +182,8 @@ class SaveForm extends React.PureComponent<SaveFormProps, SaveFormState> {
     public collect() {
         const { values } = this.state;
         const nv = {};
-        Object.keys(required).forEach(s => {
-            const define = required[s];
+        Object.keys(window.SQLBuilder.required).forEach(s => {
+            const define = window.SQLBuilder.required[s];
             const code = define.code;
             const hide = define.hide;
             const db = define.db;
@@ -248,8 +248,8 @@ class SaveForm extends React.PureComponent<SaveFormProps, SaveFormState> {
     formRender() {
         const { values, selectItems, group, invalid } = this.state;
         const forms = [];
-        Object.keys(required).forEach(s => {
-            const define = required[s];
+        Object.keys(window.SQLBuilder.required).forEach(s => {
+            const define = window.SQLBuilder.required[s];
             const hide = define.hide;
             const code = define.code;
             const name = define.name;

@@ -8,20 +8,20 @@ const ExtractTextPlugin = require("extract-text-webpack-plugin");
 const IgnorePlugin = webpack.IgnorePlugin;
 
 module.exports = {
-    devtool: 'source-map',
+    // devtool: 'source-map',
     entry: {
-        /* polyfill: ['babel-polyfill'], */
+       /*  polyfill: ['babel-polyfill'], */
         // vendor: [/* 'react', 'react-dom',  */'redux', 'react-redux', 'react-router', 'react-router-dom', 'react-router-redux', 'react-transition-group'],
         // plugin: ['redux-saga', 'redux-logger', 'immutable', 'redux-immutable', 'react-dnd', 'react-dnd-html5-backend'],
         // ui: [/* 'react-tap-event-plugin',  */'material-ui', 'material-design-icons', 'react-virtualized', 'react-sortable-hoc'],
-        // tool: ['axios', 'bowser', 'moment', 'classnames', 'uuid'/* , 'alasql' */],
-        // api: ['./src/common/api/api.ts', './src/common/api/url.ts'/*, './src/common/api/required.ts' , './src/common/api/urlrequired.ts' */],
+        // tool: ['axios', 'bowser', 'moment', 'classnames', 'uuid'/*,  'alasql' */],
+        // api: ['./src/common/api/api.ts', './src/common/api/url.ts', './src/common/api/required.ts', './src/common/api/urlrequired.ts'],
         sqlbuilder: ['./src/sqlbuilder.tsx'],
-        start: ['./src/index.ts', 'webpack-hot-middleware/client?path=/__webpack_hmr&timeout=20000']
+        start: ['./src/index.ts']
     },
     output: {
         path: path.join(__dirname, 'build'),
-        filename: '[name].bundle.js'
+        filename: '[name].js'
     },
     externals: {
         "react": "React",
@@ -31,7 +31,7 @@ module.exports = {
     plugins: [
         new IgnorePlugin(/(^fs$|cptable|jszip|xlsx|^es6-promise$|^net$|^tls$|^forever-agent$|^tough-cookie$|cpexcel|^path$|^request$|react-native|^vertx$)/),       // for alasql
         // new webpack.optimize.OccurrenceOrderPlugin(),
-        new webpack.HotModuleReplacementPlugin(),
+        // new webpack.HotModuleReplacementPlugin(),
         new webpack.NoEmitOnErrorsPlugin(),
         new ExtractTextPlugin({ filename: '[name].css', allChunks: true }),
         new webpack.optimize.CommonsChunkPlugin({
@@ -40,14 +40,22 @@ module.exports = {
             filename: 'commons.js'
         }),
         new HtmlWebpackPlugin({
-            // chunks: ['commons', 'sqlbuilder', 'start'],
-            template: path.join(__dirname, '/src/html/index.tpl.html'),
+            /* chunks: ['vendor', 'plugin', 'ui', 'tool', 'api', 'sqlbuilder'], */
+            template: path.join(__dirname, '/src/html/index.tpl.prod.html'),
             inject: 'body',
             filename: 'index.html',
-            // chunksSortMode: 'manual'
+            /* chunksSortMode: 'manual' */
         }),
         new webpack.DefinePlugin({
-            'process.env.NODE_ENV': JSON.stringify('development')
+            'process.env.NODE_ENV': JSON.stringify('production')
+        }),
+        new webpack.optimize.UglifyJsPlugin({
+            mangle: {
+                keep_fnames: true
+            },
+            compress: {
+                warnings: false
+            }
         })
     ],
     module: {

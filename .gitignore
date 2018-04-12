@@ -1,5 +1,12 @@
 /desgin
 /build
+/prod
 /node_modules
 /.vscode
 npm-debug.log
+package-lock.json
+static/react/react.js
+static/react/react-dom.js
+static/react/react-dom.min.js
+static/react/react.min.js
+static/react/react-with-tap-event.js
