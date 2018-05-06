@@ -16,6 +16,7 @@ export class SelectNode {
     tfs: immutable.Map<string, TraceField>
     appends: immutable.Map<string, TraceField>
     selects: immutable.OrderedMap<string, boolean>
+    deletes: immutable.Set<string>
     groupbys: GroupOption
     orderbys: OrderOption
     where: Array<Translate>
@@ -62,6 +63,7 @@ export class SelectNode {
         select.selects.forEach(s => {
             this.selects = this.selects.set(s, true);
         })
+        this.deletes = immutable.Set<string>(select.deletes);
         // this.named = immutable.Map<string, string>(select.named);
         this.named = immutable.Map<string, string>();
         this.anamed = immutable.Map<string, string>();
@@ -95,11 +97,49 @@ export class SelectNode {
             if (field) {
                 const item = field.trace.current(this.id);
                 let name = item.alias ? item.alias.alias : item.content.toString();
+                while (this.named.get(name) != null) {
+                    name = GraphicParser.uniqueDesignation(name);
+                }
+                const trace = field.trace.clone();
+                trace.creater.item.alias = new Alias(name);
+                const ntf = field.clone();
+                ntf.trace = trace;
+                this.tfs = this.tfs.set(id, ntf);
                 this.selects = this.selects.set(id, true);
                 this.named = this.named.set(name, id);
                 return id;
             }
         }
+    }
+
+    private removeSelect(id: string) {
+        this.deletes = this.deletes.add(id);
+        /* if(this.selects.get(id) != null) {
+            this.selects = this.selects.remove(id);
+        } */
+        /* if(this.appends.get(id) != null) {
+            this.appends = this.appends.remove(id);
+        } */
+    }
+
+    /* removeSelects(logic: SelectLogic, controlNodeId: string, fields: Array<TraceField>) {
+        fields.forEach(field => {
+            this.removeSelect(field.id);
+        })
+        if(this.nodes) {
+            if(this.id == controlNodeId) {
+                return;
+            }
+            this.nodes.forEach(node => {
+                logic.getNode(node).removeSelects(logic, controlNodeId, fields);
+            })
+        }
+    } */
+
+    removeSelects(fields: Array<TraceField>) {
+        fields.forEach(field => {
+            this.removeSelect(field.id)
+        })
     }
 
     alias(aliasId: string, field: TraceField) {
@@ -119,7 +159,7 @@ export class SelectNode {
             }
             if (pname != cname) { ofield.trace.creater.item.alias = new Alias(pname); }
             this.named = this.named.set(pname, ofield.id);
-            if(this.tfs.has(ofield.id)) {
+            if (this.tfs.has(ofield.id)) {
                 this.tfs = this.tfs.set(ofield.id, ofield);
             } else {
                 this.appends = this.appends.set(ofield.id, ofield);
@@ -204,6 +244,9 @@ export class SelectNode {
     submit(collectId?: string): immutable.OrderedMap<string, TraceField> {
         let submits = immutable.OrderedMap<string, TraceField>();
         if (this.selects) {
+            if(this.deletes) {
+                this.selects = immutable.Map<string, boolean>(this.selects.filterNot((v, k) => { return this.deletes.has(k)}));
+            }
             this.selects.keySeq().forEach(s => {
                 let submit = collectId && collectId == this.id ? this.tfs.get(s) : this.getTraceField(s);
                 if (submit) submits = submits.set(submit.id, submit);
@@ -245,7 +288,10 @@ export class SelectNode {
                     const fields = node.collect(logic, selects);
                     if (fields) {
                         fields.valueSeq().forEach(field => {
-                            if (selects.has(field.id)) {
+                            if (this.deletes && this.deletes.has(field.id)) {
+                                this.selects = this.selects.remove(field.id);
+                                this.appends = this.appends.remove(field.id);
+                            } else if (selects.has(field.id)) {
                                 this.extra(field);
                             }
                         })
@@ -335,6 +381,14 @@ export class SelectLogic {
             this.nodes = this.nodes.set(nodeId, node);
         }
 
+    }
+
+    
+    removeSelects(nodeId: string, fields: Array<TraceField>) {
+        if(nodeId && fields && this.nodes.has(nodeId)) {
+            this.nodes.get(nodeId).removeSelects(fields);
+            this.cache = this.cache.delete(nodeId);
+        }
     }
 
     alias(aliasId: string, field: TraceField) {

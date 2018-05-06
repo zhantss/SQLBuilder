@@ -25,6 +25,7 @@ import { Option } from '../../../../../common/data/option'
 import { Translate } from '../../../../../common/data/option/translate'
 import { TraceSelectItem, TraceField } from '../../../../../common/data/option/traceability'
 import { OrderByItem, OrderOption } from '../../../../../common/data/option/option'
+import shouldCancelStart from './shouldCancelStart'
 
 interface OrderListProps {
     // addins: immutable.Map<string, TraceField>
@@ -34,9 +35,9 @@ interface OrderListProps {
 }
 
 interface OrderListState {
-    items: immutable.Map<number, ListItem>
+    items: immutable.List<ListItem>
     // exists: immutable.Map<string, number>
-    unique: immutable.Map<string, number>
+    unique: immutable.Set<string>
 }
 
 const SortableTable = SortableContainer(RV_Table, { withRef: true })
@@ -63,17 +64,17 @@ class OrderList extends React.PureComponent<OrderListProps, OrderListState> {
     }
 
     initialization(order: OrderOption) {
-        return this.mapping(immutable.Map<number, ListItem>(), /* immutable.Map<string, number>(),  */immutable.Map<string, number>(), order);
+        return this.mapping(immutable.List<ListItem>(), /* immutable.Map<string, number>(),  */immutable.Set<string>(), order);
     }
 
-    mapping(items: immutable.Map<number, ListItem>, /* exists: immutable.Map<string, number>, */ unique: immutable.Map<string, number>, order: OrderOption) {
+    mapping(items: immutable.List<ListItem>, /* exists: immutable.Map<string, number>, */ unique: immutable.Set<string>, order: OrderOption) {
         // let { items, exists } = this.state;
         const { nodeId } = this.props;
         let orders = order.sequence().toArray();
         for (let x = 0; x < orders.length; x++) {
             const oitem = orders[x];
-            const ue = unique.get(oitem.id);
-            if (ue != null) continue;
+            // const ue = unique.has(oitem.id);
+            if (unique.has(oitem.id)) continue;
             const current = oitem.field.trace.current(nodeId);
             if (current == null) continue;
 
@@ -92,9 +93,9 @@ class OrderList extends React.PureComponent<OrderListProps, OrderListState> {
             if (item == null) continue;
             let size = items.size;
             const tsi = new TraceSelectItem(item, alias, oitem.field);
-            tsi.index = size;
+            // tsi.index = size;
             items = items.set(size, new ListItem(oitem.id, tsi, oitem));
-            unique = unique.set(oitem.id, size);
+            unique = unique.add(oitem.id);
         }
         return {
             items: items,
@@ -114,8 +115,9 @@ class OrderList extends React.PureComponent<OrderListProps, OrderListState> {
 
     onSortEnd({ oldIndex, newIndex }) {
         let { items, unique } = this.state;
+        const oe = items.get(oldIndex);
         /* const oe = items.get(oldIndex);
-        const ne = items.get(newIndex); */
+        const ne = items.get(newIndex);
         const diff = newIndex > oldIndex ? -1 : newIndex == oldIndex ? 0 : 1;
         let curr = newIndex;
         const oe = items.get(oldIndex);
@@ -137,6 +139,10 @@ class OrderList extends React.PureComponent<OrderListProps, OrderListState> {
             items = items.set(oldIndex, ne);
             unique = unique.set(ne.order.id, oldIndex);
         } */
+        if(oe) {
+            items = items.remove(oldIndex);
+            items = items.insert(newIndex, oe);
+        }
         this.setState({
             items, unique
         })
@@ -163,6 +169,24 @@ class OrderList extends React.PureComponent<OrderListProps, OrderListState> {
                 return 'rv-table-header-row';
             } else {
                 return row.index % 2 === 0 ? 'rv-table-even-row' : 'rv-table-odd-row';
+            }
+        }
+    }
+
+    deleteItems(event) {
+        let { items, unique } = this.state;
+        if(event.currentTarget && event.currentTarget.getAttribute('data-index')) {
+            let index = parseInt(event.currentTarget.getAttribute('data-index'));
+            if(!isNaN(index)) {
+                let item = items.get(index);
+                if(item) {
+                    let id = item.order.id;
+                    items = items.remove(index);
+                    unique = unique.remove(id);
+                    this.setState({
+                        items, unique
+                    })
+                }
             }
         }
     }
@@ -197,6 +221,7 @@ class OrderList extends React.PureComponent<OrderListProps, OrderListState> {
                     rowClassName={this.rowClassName.bind(this)}
                     rowRenderer={this.rowRenderer}
                     noRowsRenderer={this.noRowsRenderer}
+                    shouldCancelStart={shouldCancelStart}
                     gridStyle={{ outline: 0 }}
                     helperClass='sortable-helper'
                     // onSortMove={event => console.log(event)}
@@ -243,6 +268,13 @@ class OrderList extends React.PureComponent<OrderListProps, OrderListState> {
                         cellDataGetter={(row) => { const data: ListItem = row.rowData; return data.item.datasource() }}
                         dataKey={'datasource'}
                         width={600}
+                    />
+                    <RV_Column
+                        label={cn.option_select_tab_select_items_control_delete}
+                        // cellDataGetter={(row) => { const data: TraceSelectItem = row.rowData; return <IconButton data-identity={data.index} onTouchTap={this.deleteItems.bind(this)}><Icon name={"clear"} /></IconButton> }}
+                        cellRenderer={(row) => { const data: TraceSelectItem = row.rowData; return <IconButton data-index={row.rowIndex} data-canelhoc={true} onTouchTap={this.deleteItems.bind(this)}><Icon name={"clear"} /></IconButton> }}
+                        dataKey={'name'}
+                        width={200}
                     />
                 </SortableTable>)}
         </RV_AutoSizer>;

@@ -153,6 +153,10 @@ class SelectContent extends React.PureComponent<SelectContentProps, SelectConten
                     // TODO Custom Select Item
                     logic.alias(nid, up);
                 })
+                const deletes = this.rich.collectDelete();
+                if(deletes.length > 0) {
+                    logic.removeSelects(nid, deletes);
+                }
                 where = this.where.collectTranslate();
                 having = this.having.collectTranslate();
                 logic.where(nodeId, where);
@@ -162,6 +166,7 @@ class SelectContent extends React.PureComponent<SelectContentProps, SelectConten
 
             const select: Option.SelectOption = options.get(nid + ".SELECT");
             select.selects = node.selects.keySeq().toArray();
+            select.deletes = node.deletes.toArray();
             select.named = node.named;
             select.groupby = node.groupbys;
             select.orderby = node.orderbys;

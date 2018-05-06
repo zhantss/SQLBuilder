@@ -118,6 +118,7 @@ export class GroupOption {
 export class SelectOption implements Option {
     key: string
     selects?: Array<string>
+    deletes?: Array<string>
     named?: immutable.Map<string, string>
     where?: Array<Translate>
     groupby?: GroupOption
@@ -128,6 +129,7 @@ export class SelectOption implements Option {
     constructor(key: string) {
         this.key = key;
         this.selects = new Array<string>();
+        this.deletes = new Array<string>();
         this.named = immutable.Map<string, string>();
         this.where = new Array<Translate>();
         this.groupby = new GroupOption();

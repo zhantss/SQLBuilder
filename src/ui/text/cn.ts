@@ -40,6 +40,7 @@ export const option_select_tab_select_items_table_alias = "别名"
 export const option_select_tab_select_items_table_as = "AS"
 export const option_select_tab_select_items_table_from = "来源"
 export const option_select_tab_select_items_table_datasource = "数据源"
+export const option_select_tab_select_items_control_delete = "删除"
 export const option_select_tab_select_items_table_no_row = "请添加需要查询的字段"
 export const option_select_tab_order_items_table_des = "排序"
 

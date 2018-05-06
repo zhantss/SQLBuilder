@@ -10,7 +10,6 @@ const result = create(init, {
             const sql = state.get('sql');
             for(let i = 0; i < sql.length; i++) {
                 if(i >= action.sql.length || action.sql[i].sql != sql[i].sql) {
-                    debugger
                     state = state.setIn(['result', i], null);
                 } 
             }

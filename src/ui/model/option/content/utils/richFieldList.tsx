@@ -31,8 +31,9 @@ interface RichFieldListProps {
 }
 
 interface RichFieldListState {
-    items: immutable.OrderedMap<number, TraceSelectItem>
-    exists: immutable.Map<string, number>
+    rows: immutable.List<string>
+    items: immutable.OrderedMap<string, TraceSelectItem>
+    exists: immutable.Map<string, string>
     unique: immutable.Map<string, number>
 }
 
@@ -44,14 +45,15 @@ class RichFieldList extends React.PureComponent<RichFieldListProps, RichFieldLis
     }
 
     initialization(addins: immutable.Map<string, TraceField>) {
-        return this.mapping(immutable.OrderedMap<number, TraceSelectItem>(), /* immutable.Map<string, number>(), */ immutable.OrderedMap<string, number>(), addins);
+        return this.mapping(immutable.OrderedMap<string, TraceSelectItem>(), /* immutable.Map<string, number>(), */ immutable.OrderedMap<string, number>(), addins);
     }
 
-    mapping(items: immutable.OrderedMap<number, TraceSelectItem>, /* exists: immutable.Map<string, number>,  */unique: immutable.Map<string, number>, addins: immutable.OrderedMap<string, TraceField>) {
+    mapping(items: immutable.OrderedMap<string, TraceSelectItem>, /* exists: immutable.Map<string, number>,  */unique: immutable.Map<string, number>, addins: immutable.OrderedMap<string, TraceField>) {
         // let { items, exists } = this.state;
         const { nodeId } = this.props;
         let tfs = addins.valueSeq().toArray();
-        let exists = immutable.Map<string, number>();
+        let rows = immutable.List<string>();
+        let exists = immutable.Map<string, string>();
         for (let x = 0; x < tfs.length; x++) {
             const tf = tfs[x];
             const current = tf.trace.current(nodeId);
@@ -86,18 +88,23 @@ class RichFieldList extends React.PureComponent<RichFieldListProps, RichFieldLis
                 }
                 alias.alias = an;
             }
-            const ue = unique.get(tf.id);
-            let size = ue != null ? ue : items.size;
-            items = items.set(size, new TraceSelectItem(item, alias, tf));
+            // const ue = unique.get(tf.id);
+            // let size = ue != null ? ue : items.size;
+            let tsi = new TraceSelectItem(item, alias, tf);
+            let id = tsi.getTraceField().id;
+            let size = rows.size;
+            rows = rows.set(size, id)
+            items = items.set(id, tsi);
             if (alias != null) {
-                exists = exists.set(alias.alias, size);
+                exists = exists.set(alias.alias, id);
                 unique = unique.set(tf.id, size);
             } else {
-                exists = exists.set(item.toString(), size);
+                exists = exists.set(item.toString(), id);
                 unique = unique.set(tf.id, size);
             }
         }
         return {
+            rows: rows,
             items: items,
             exists: exists,
             unique: unique
@@ -109,8 +116,8 @@ class RichFieldList extends React.PureComponent<RichFieldListProps, RichFieldLis
     }
 
     rowGetter({ index }) {
-        const { items } = this.state;
-        return items.get(index);
+        const { items, rows } = this.state;
+        return items.get(rows.get(index));
     }
 
     noRowsRenderer() {
@@ -128,7 +135,7 @@ class RichFieldList extends React.PureComponent<RichFieldListProps, RichFieldLis
     }
 
     // private alias: immutable.Map<number, any> = immutable.Map<number, any>();
-    private aliasInputs: immutable.Map<number, any> = immutable.Map<number, any>();
+    private aliasInputs: immutable.Map<string, any> = immutable.Map<string, any>();
 
     public collect(): Array<TraceField> {
         const { nodeId } = this.props;
@@ -153,11 +160,11 @@ class RichFieldList extends React.PureComponent<RichFieldListProps, RichFieldLis
         }) */
 
         this.aliasInputs.entrySeq().forEach(e => {
-            const index: number = e[0];
+            const id: string = e[0];
             const value: string = e[1];
             // if(value == null) { console.log(this.alias.toJS()) }
             const alias = value;
-            const item = items.get(index);
+            const item = items.get(id);
             if (item) {
                 const tf = item.getTraceField();
                 if (alias != null && alias.length != 0) {
@@ -172,11 +179,42 @@ class RichFieldList extends React.PureComponent<RichFieldListProps, RichFieldLis
         return upper;
     }
 
-    private aliasChange(event , value) {
+    private aliasChange(event, value) {
         if(event && event.currentTarget && event.currentTarget.getAttribute) {
-            const index = parseInt(event.currentTarget.getAttribute('data-index'));
+            const id = event.currentTarget.getAttribute('data-id');
+            if(id) {
+                this.aliasInputs = this.aliasInputs.set(id, value);
+            }
+        }
+    }
+
+    private deleteSelects: immutable.Set<TraceField> = immutable.Set<TraceField>();
+
+    public collectDelete(): Array<TraceField> {
+        return this.deleteSelects.toArray();
+    }
+
+    private deleteSelect(event) {
+        let { items, unique, exists, rows } = this.state;
+        if(event.currentTarget && event.currentTarget.getAttribute('data-index')) {
+            let index = parseInt(event.currentTarget.getAttribute('data-index'));
             if(!isNaN(index)) {
-                this.aliasInputs = this.aliasInputs.set(index, value);
+                let id = rows.get(index);
+                let item = items.get(id);
+                if(item) {
+                    let id = item.getTraceField().id;
+                    let alias = item.alias;
+                    rows = rows.remove(index);
+                    items = items.remove(id);
+                    unique = unique.remove(id);
+                    this.deleteSelects = this.deleteSelects.add(item.getTraceField());
+                    if(alias) {
+                        exists = exists.remove(alias.alias);
+                    }
+                    this.setState({
+                        items, unique, exists, rows
+                    })
+                }
             }
         }
     }
@@ -209,7 +247,7 @@ class RichFieldList extends React.PureComponent<RichFieldListProps, RichFieldLis
                         cellRenderer={({ rowData, rowIndex }) => {
                             const data: TraceSelectItem = rowData;
                             const alias = data.alias ? data.alias : null;
-                            return <TextField defaultValue={alias ? alias.alias : ""} name={uuid.v4()} data-index={rowIndex} onChange={this.aliasChange.bind(this)} /* ref={x => { this.alias = this.alias.set(rowIndex, x); }} */ />
+                            return <TextField defaultValue={alias ? alias.alias : ""} name={uuid.v4()} data-index={rowIndex} data-id={data.getTraceField().id} onChange={this.aliasChange.bind(this)} /* ref={x => { this.alias = this.alias.set(rowIndex, x); }} */ />
                         }}
                         dataKey={'alias'}
                         width={200}
@@ -231,6 +269,13 @@ class RichFieldList extends React.PureComponent<RichFieldListProps, RichFieldLis
                         cellDataGetter={(row) => { const data: TraceSelectItem = row.rowData; return data.datasource() }}
                         dataKey={'datasource'}
                         width={600}
+                    />
+                    <RV_Column
+                        label={cn.option_select_tab_select_items_control_delete}
+                        // cellDataGetter={(row) => { const data: TraceSelectItem = row.rowData; return <IconButton data-identity={data.index} onTouchTap={this.deleteItems.bind(this)}><Icon name={"clear"} /></IconButton> }}
+                        cellRenderer={(row) => { const data: TraceSelectItem = row.rowData; return <IconButton data-index={row.rowIndex} data-canelhoc={true} onTouchTap={this.deleteSelect.bind(this)}><Icon name={"clear"} /></IconButton> }}
+                        dataKey={'name'}
+                        width={200}
                     />
                 </RV_Table>)}
         </RV_AutoSizer>;

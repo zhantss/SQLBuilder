@@ -118,6 +118,7 @@ export class SQLBuilder {
         // select items
         const items = this.logic.collect(node.id);
         const selects = [];
+        
         items.valueSeq().forEach(item => {
             const sitem = item.trace.current(node.id);
             const next = item.trace.next(node.id);

@@ -25,6 +25,7 @@ import { Option } from '../../../../../common/data/option'
 import { Translate } from '../../../../../common/data/option/translate'
 import { TraceSelectItem, TraceField } from '../../../../../common/data/option/traceability'
 import { GroupOption } from '../../../../../common/data/option/option'
+import shouldCancelStart from './shouldCancelStart'
 
 interface GroupListProps {
     // addins: immutable.Map<string, TraceField>
@@ -34,9 +35,9 @@ interface GroupListProps {
 }
 
 interface GroupListState {
-    items: immutable.Map<number, TraceSelectItem>
+    items: immutable.List<TraceSelectItem>
     // exists: immutable.Map<string, number>
-    unique: immutable.Map<string, number>
+    unique: immutable.Set<string>
 }
 
 const SortableTable = SortableContainer(RV_Table, { withRef: true })
@@ -52,17 +53,17 @@ class GroupList extends React.PureComponent<GroupListProps, GroupListState> {
     }
 
     initialization(group: GroupOption) {
-        return this.mapping(immutable.Map<number, TraceSelectItem>(), /* immutable.Map<string, number>(),  */immutable.Map<string, number>(), group);
+        return this.mapping(immutable.List<TraceSelectItem>(), /* immutable.Map<string, number>(),  */immutable.Set<string>(), group);
     }
 
-    mapping(items: immutable.Map<number, TraceSelectItem>, /* exists: immutable.Map<string, number>, */ unique: immutable.Map<string, number>, group: GroupOption) {
+    mapping(items: immutable.List<TraceSelectItem>, /* exists: immutable.Map<string, number>, */ unique: immutable.Set<string>, group: GroupOption) {
         // let { items, exists } = this.state;
         const { nodeId } = this.props;
         let groups = group.sequence().toArray();
         for (let x = 0; x < groups.length; x++) {
             const gitem = groups[x];
-            const ue = unique.get(gitem.id);
-            if (ue != null) continue;
+            // const ue = unique.has(gitem.id);
+            if (unique.has(gitem.id)) continue;
             const current = gitem.trace.current(nodeId);
             if (current == null) continue;
 
@@ -81,9 +82,9 @@ class GroupList extends React.PureComponent<GroupListProps, GroupListState> {
             if (item == null) continue;
             let size = items.size;
             const tsi = new TraceSelectItem(item, alias, gitem);
-            tsi.index = size;
+            // tsi.index = size;
             items = items.set(size, tsi);
-            unique = unique.set(gitem.id, size);
+            unique = unique.add(gitem.id);
         }
         return {
             items: items,
@@ -104,12 +105,16 @@ class GroupList extends React.PureComponent<GroupListProps, GroupListState> {
     onSortEnd({ oldIndex, newIndex }) {
         let { items, unique } = this.state;
         const oe = items.get(oldIndex);
-        const ne = items.get(newIndex);
-        if (oe && ne) {
+        // const ne = items.get(newIndex);
+       /*  if (oe && ne) {
             items = items.set(newIndex, oe);
             unique = unique.set(oe.getTraceField().id, newIndex);
             items = items.set(oldIndex, ne);
             unique = unique.set(ne.getTraceField().id, oldIndex);
+        } */
+        if(oe) {
+            items = items.remove(oldIndex);
+            items = items.insert(newIndex, oe);
         }
         this.setState({
             items, unique
@@ -138,6 +143,24 @@ class GroupList extends React.PureComponent<GroupListProps, GroupListState> {
 
     // private desc: immutable.Map<string, any> = immutable.Map<string, any>()
 
+    deleteItems(event) {
+        let { items, unique } = this.state;
+        if(event.currentTarget && event.currentTarget.getAttribute('data-index')) {
+            let index = parseInt(event.currentTarget.getAttribute('data-index'));
+            if(!isNaN(index)) {
+                let item = items.get(index);
+                if(item) {
+                    let id = item.getTraceField().id;
+                    items = items.remove(index);
+                    unique = unique.remove(id);
+                    this.setState({
+                        items, unique
+                    })
+                }
+            }
+        }
+    }
+
     public collect(): GroupOption {
         const { nodeId } = this.props;
         const { items } = this.state;
@@ -162,6 +185,8 @@ class GroupList extends React.PureComponent<GroupListProps, GroupListState> {
                     rowClassName={this.rowClassName.bind(this)}
                     rowRenderer={this.rowRenderer}
                     noRowsRenderer={this.noRowsRenderer}
+                    shouldCancelStart={shouldCancelStart}
+                    pressDelay={100}
                     gridStyle={{ outline: 0 }}
                     helperClass='sortable-helper'
                 >
@@ -188,6 +213,13 @@ class GroupList extends React.PureComponent<GroupListProps, GroupListState> {
                         cellDataGetter={(row) => { const data: TraceSelectItem = row.rowData; return data.datasource() }}
                         dataKey={'datasource'}
                         width={600}
+                    />
+                    <RV_Column
+                        label={cn.option_select_tab_select_items_control_delete}
+                        // cellDataGetter={(row) => { const data: TraceSelectItem = row.rowData; return <IconButton data-identity={data.index} onTouchTap={this.deleteItems.bind(this)}><Icon name={"clear"} /></IconButton> }}
+                        cellRenderer={(row) => { const data: TraceSelectItem = row.rowData; return <IconButton data-index={row.rowIndex} data-canelhoc={true} onTouchTap={this.deleteItems.bind(this)}><Icon name={"clear"} /></IconButton> }}
+                        dataKey={'name'}
+                        width={200}
                     />
                 </SortableTable>)}
         </RV_AutoSizer>;
